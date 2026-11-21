@@ -4,9 +4,9 @@ import re
 import urllib.request
 from typing import Any
 
-BIONIC_BASE_URL = os.getenv("BIONIC_BASE_URL", "http://localhost:11434/v1")
-BIONIC_MODEL = os.getenv("BIONIC_MODEL", "qwen2.5:0.5b")
-BIONIC_API_KEY = os.getenv("BIONIC_API_KEY", "ollama")
+BIONIC_BASE_URL = os.getenv("BIONIC_BASE_URL", "http://localhost:1235/v1")
+BIONIC_MODEL = os.getenv("BIONIC_MODEL", "qwen3.5-0.8b")
+BIONIC_API_KEY = os.getenv("BIONIC_API_KEY", "")
 
 INTENT_KEYWORDS = {
     # Check Level 3 Refusals and Security first

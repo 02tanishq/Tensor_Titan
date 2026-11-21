@@ -65,13 +65,6 @@ def resolve_precedence(
                 as_of=as_of_date
             )
             clashes.append(clash)
-            # Include the winning circular/rule chunk instead of the outdated FAQ
-            win_chunks = [c for c in all_chunks if c.doc_id == winning_doc and c.effective_from <= as_of_date]
-            for wc in win_chunks:
-                key = f"{wc.doc_id}:{wc.section}"
-                if key not in seen_chunk_keys:
-                    seen_chunk_keys.add(key)
-                    winning_chunks.append(wc)
             continue  # Exclude outdated FAQ from final answer
 
         # Check if Rule is modified by an active circular
