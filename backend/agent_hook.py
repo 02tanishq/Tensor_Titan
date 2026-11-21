@@ -247,6 +247,63 @@ def handle_chat_query(passenger_id: str, session_id: str, message: str, as_of: O
         return trace_record
 
     # ----------------------------------------------------------------------
+    # 4.7 Passenger Bookings Inquiry (What tickets/bookings do I have?)
+    # ----------------------------------------------------------------------
+    booking_inquiry_triggers = [
+        "kon kon ticket", "kon si ticket", "meri ticket", "meri booking", 
+        "my booking", "my ticket", "show my ticket", "tell me about the booking", 
+        "what booking", "check my booking", "list my booking", "booking that i have done",
+        "ticket book kiye"
+    ]
+    is_booking_inquiry = (
+        any(phrase in msg_lower for phrase in booking_inquiry_triggers)
+        and not any(w in msg_lower for w in ["cancel", "radd", "refund", "charge"])
+    )
+    if is_booking_inquiry:
+        conn = get_db()
+        c = conn.cursor()
+        c.execute("""
+            SELECT b.booking_id, b.train_no, t.name as train_name, b.from_code, b.to_code, 
+                   b.journey_date, b.class, b.status, b.amount_paid
+            FROM bookings b
+            LEFT JOIN trains t ON b.train_no = t.train_no
+            WHERE b.passenger_id = ?
+            ORDER BY b.journey_date DESC
+        """, (passenger_id,))
+        rows = c.fetchall()
+        conn.close()
+
+        if rows:
+            booking_lines = []
+            for r in rows:
+                t_name = f" ({r['train_name']})" if r["train_name"] else ""
+                booking_lines.append(
+                    f"• {r['booking_id']}: Train {r['train_no']}{t_name} from {r['from_code']} to {r['to_code']} on {r['journey_date']} "
+                    f"| Class: {r['class']} | Status: {r['status']} | Fare: Rs {r['amount_paid']}"
+                )
+            ans_text = f"Here are the bookings registered under your account ({passenger_id}):\n" + "\n".join(booking_lines)
+            tool_data = [{"booking_id": r["booking_id"], "train_no": r["train_no"], "status": r["status"]} for r in rows]
+        else:
+            ans_text = f"You do not have any registered bookings under Passenger ID {passenger_id}."
+            tool_data = []
+
+        trace_record = {
+            "trace_id": trace_id,
+            "session_id": session_id,
+            "passenger_id": passenger_id,
+            "timestamp": as_of,
+            "user_query": message,
+            "answer_type": "answer",
+            "answer": ans_text,
+            "sources": [{"doc_id": "RUL-BKG-01", "section": "2. Passenger Bookings"}],
+            "tools": [{"tool": "get_passenger_bookings", "output": {"count": len(rows), "bookings": tool_data}}],
+            "pending_action": None,
+            "handed_to_human": None
+        }
+        save_audit_trace(trace_record)
+        return trace_record
+
+    # ----------------------------------------------------------------------
     # 5. R2: Vague Queries (Follow-up questions)
     # ----------------------------------------------------------------------
     vague_phrases = [

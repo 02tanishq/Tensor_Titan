@@ -12,7 +12,43 @@ import math
 import re
 import numpy as np
 from typing import List, Dict, Optional, Tuple, Set
-from rank_bm25 import BM25Okapi
+try:
+    from rank_bm25 import BM25Okapi
+except ImportError:
+    class BM25Okapi:
+        """Pure-Python BM25Okapi implementation for environments without rank_bm25."""
+        def __init__(self, corpus: List[List[str]], k1: float = 1.5, b: float = 0.75):
+            self.k1 = k1
+            self.b = b
+            self.corpus_size = len(corpus)
+            self.doc_lens = np.array([len(doc) for doc in corpus], dtype=np.float32)
+            self.avgdl = float(np.mean(self.doc_lens)) if self.corpus_size > 0 else 1.0
+            self.doc_freqs: List[Dict[str, int]] = []
+            self.nd: Dict[str, int] = {}
+            for doc in corpus:
+                df = {}
+                for word in doc:
+                    df[word] = df.get(word, 0) + 1
+                self.doc_freqs.append(df)
+                for word in df:
+                    self.nd[word] = self.nd.get(word, 0) + 1
+            self.idf = {}
+            for word, freq in self.nd.items():
+                self.idf[word] = math.log((self.corpus_size - freq + 0.5) / (freq + 0.5) + 1)
+
+        def get_scores(self, query: List[str]) -> np.ndarray:
+            scores = np.zeros(self.corpus_size, dtype=np.float32)
+            for word in query:
+                if word not in self.idf:
+                    continue
+                w_idf = self.idf[word]
+                for i, df in enumerate(self.doc_freqs):
+                    freq = df.get(word, 0)
+                    if freq > 0:
+                        numerator = freq * (self.k1 + 1)
+                        denominator = freq + self.k1 * (1 - self.b + self.b * (self.doc_lens[i] / self.avgdl))
+                        scores[i] += w_idf * (numerator / denominator)
+            return scores
 
 from RAG_pipeline.models import DocumentChunk, RetrievalResult, Citation, ClashRecord
 from RAG_pipeline.chunker import chunk_all_documents

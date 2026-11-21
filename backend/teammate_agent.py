@@ -1,17 +1,10 @@
 """
-<<<<<<< HEAD
-Teammate Agent Integration Module.
-Implements process_with_rag_agent, bridging backend/server.py and backend/agent_hook.py
-to our RAG & Orchestration brain.
-"""
-
-from typing import Dict, Any, Optional
-from app.orchestrator.engine import handle_chat
-
-=======
-Ujjwal Rail Teammate Agentic Bridge
-Connects the teammate's Agentic AI Engine (agentic/) to the FastAPI backend (/chat).
-Strictly adheres to Hackathon Section 6.1 schema and Participant Guide requirements.
+Ujjwal Rail Unified Agentic & RAG Bridge
+Connects:
+1. Agentic Action Engine (cancellations, quotes, proposals)
+2. RAG Knowledge Pipeline (HybridRetriever for rules, circulars, faqs, live ingest)
+3. Guardrails (R8 Privacy, R9 Adversarial Injection, R7 Human Handover)
+4. Domain Tools (bookings, seat matrices, schedules, passenger profiles)
 """
 
 import os
@@ -36,51 +29,38 @@ from backend.tools import (
     get_db_connection
 )
 from backend.domain_tools import propose_action
->>>>>>> 574de03bc5c4c5c3d8b59f200425862a516889bd
+
+# Wire RAG Pipeline HybridRetriever for intelligent rule retrieval
+from RAG_pipeline.repository import RulesRepository
+from RAG_pipeline.hybrid_retriever import HybridRetriever
+
+_rag_repo = RulesRepository(db_path="data/ujjwal_rail.db")
+_rag_retriever = HybridRetriever(_rag_repo)
+
+def get_rag_retriever() -> HybridRetriever:
+    return _rag_retriever
 
 def process_with_rag_agent(
     passenger_id: str,
     session_id: str,
     message: str,
-<<<<<<< HEAD
     as_of: Optional[str] = None,
     trace_id: Optional[str] = None
 ) -> Dict[str, Any]:
     """
-    Delegates /chat requests to our full Orchestrator and Guardrails engine.
-    Returns the exact Section 6.1 contract dictionary.
-    """
-    resp = handle_chat(
-        header=passenger_id,
-        session_id=session_id,
-        message=message,
-        as_of=as_of
-    )
-
-    return {
-        "trace_id": resp.trace_id,
-        "session_id": session_id,
-        "passenger_id": passenger_id,
-        "timestamp": as_of or "",
-        "user_query": message,
-        "answer_type": resp.answer_type,
-        "answer": resp.answer,
-        "sources": [s.model_dump() for s in resp.sources],
-        "tools": [t.model_dump() for t in resp.tools],
-        "pending_action": resp.pending_action.model_dump() if resp.pending_action else None,
-        "handed_to_human": resp.handed_to_human.model_dump() if resp.handed_to_human else None
-    }
-=======
-    as_of: str,
-    trace_id: str
-) -> Dict[str, Any]:
-    """
-    Main entry point bridging the agentic engine and deterministic tools:
+    Main entry point bridging the agentic engine, RAG pipeline, and deterministic tools:
     1. Enforces strict R9 Injection & R8 Privacy guardrails.
     2. Routes policy actions (cancel, complaint, disputes, refusals) to agentic policy engine.
-    3. Routes informational queries (train search, seat matrices, fares, rules) to deterministic tools.
-    4. Emits exact Section 6.1 contract schema.
+    3. Handles identity queries, conversational greetings, and passenger booking lookups.
+    4. Routes rules and knowledge queries through RAG HybridRetriever.
+    5. Emits exact Section 6.1 contract schema.
     """
+    if not as_of:
+        as_of = datetime.now().isoformat()
+    if not trace_id:
+        import uuid
+        trace_id = uuid.uuid4().hex[:8]
+
     msg_clean = message.strip()
     msg_lower = msg_clean.lower()
 
@@ -209,7 +189,7 @@ def process_with_rag_agent(
     pure_greetings = ["hi", "hello", "hey", "namaste", "good morning", "good evening", "good afternoon", "hi!", "hello!", "hey!"]
     is_greeting = msg_lower in pure_greetings or (
         msg_lower.startswith(("hi ", "hello ", "hey ", "namaste ")) 
-        and not any(k in msg_lower for k in ["train", "ticket", "cancel", "refund", "tatkal", "seat", "fare", "ur-", "status"])
+        and not any(k in msg_lower for k in ["train", "ticket", "cancel", "refund", "tatkal", "seat", "fare", "ur-", "status", "booking"])
     )
     if is_greeting:
         conn = get_db_connection()
@@ -224,6 +204,57 @@ def process_with_rag_agent(
             "answer": f"Hello{name_str}! I am your Ujjwal Rail Travel Assistant. You can ask me about train schedules, seat availability, cancellation refunds, or railway rules. How can I help you today?",
             "sources": [],
             "tools": [],
+            "pending_action": None,
+            "handed_to_human": None
+        }
+
+    # ----------------------------------------------------------------------
+    # 3.7 Passenger Bookings Inquiry (What tickets/bookings do I have?)
+    # ----------------------------------------------------------------------
+    booking_inquiry_triggers = [
+        "kon kon ticket", "kon si ticket", "meri ticket", "meri booking", 
+        "my booking", "my ticket", "show my ticket", "tell me about the booking", 
+        "what booking", "check my booking", "list my booking", "booking that i have done",
+        "ticket book kiye"
+    ]
+    is_booking_inquiry = (
+        any(phrase in msg_lower for phrase in booking_inquiry_triggers)
+        and not any(w in msg_lower for w in ["cancel", "radd", "refund", "charge"])
+    )
+    if is_booking_inquiry:
+        conn = get_db_connection()
+        c = conn.cursor()
+        c.execute("""
+            SELECT b.booking_id, b.train_no, t.name as train_name, b.from_code, b.to_code, 
+                   b.journey_date, b.class, b.status, b.amount_paid
+            FROM bookings b
+            LEFT JOIN trains t ON b.train_no = t.train_no
+            WHERE b.passenger_id = ?
+            ORDER BY b.journey_date DESC
+        """, (passenger_id,))
+        rows = c.fetchall()
+        conn.close()
+
+        if rows:
+            booking_lines = []
+            for r in rows:
+                t_name = f" ({r['train_name']})" if r["train_name"] else ""
+                booking_lines.append(
+                    f"• {r['booking_id']}: Train {r['train_no']}{t_name} from {r['from_code']} to {r['to_code']} on {r['journey_date']} "
+                    f"| Class: {r['class']} | Status: {r['status']} | Fare: Rs {r['amount_paid']}"
+                )
+            ans_text = f"Here are the bookings registered under your account ({passenger_id}):\n" + "\n".join(booking_lines)
+            tool_data = [{"booking_id": r["booking_id"], "train_no": r["train_no"], "status": r["status"]} for r in rows]
+        else:
+            ans_text = f"You do not have any registered bookings under Passenger ID {passenger_id}."
+            tool_data = []
+
+        return {
+            "trace_id": trace_id,
+            "answer_type": "answer",
+            "answer": ans_text,
+            "sources": [{"doc_id": "RUL-BKG-01", "section": "2. Passenger Bookings"}],
+            "tools": [{"tool": "get_passenger_bookings", "output": {"count": len(rows), "bookings": tool_data}}],
             "pending_action": None,
             "handed_to_human": None
         }
@@ -346,7 +377,7 @@ def process_with_rag_agent(
         b_match = re.search(r'UR-\d{5}', msg_clean)
         if b_match:
             b_id = b_match.group(0)
-            c.execute("UPDATE bookings SET status = 'CNF' WHERE booking_id = ?", (b_id,))
+            c.execute("UPDATE bookings SET status = 'CONFIRMED' WHERE booking_id = ?", (b_id,))
             conn.commit()
         else:
             c.execute("SELECT booking_id FROM bookings WHERE passenger_id = ? AND status IN ('CONFIRMED', 'CNF') ORDER BY journey_date ASC LIMIT 1", (passenger_id,))
@@ -508,6 +539,27 @@ def process_with_rag_agent(
             "handed_to_human": None
         }
 
+    # ----------------------------------------------------------------------
+    # 10. Dynamic RAG Knowledge Retrieval using HybridRetriever
+    # ----------------------------------------------------------------------
+    try:
+        query_date = as_of[:10] if as_of and len(as_of) >= 10 else "2026-11-21"
+        rag_res = _rag_retriever.retrieve(msg_clean, as_of=query_date, top_k=2)
+        if rag_res and rag_res.chunks:
+            top_chunk = rag_res.chunks[0]
+            sources_list = [{"doc_id": c.doc_id, "section": c.section} for c in rag_res.chunks[:2]]
+            return {
+                "trace_id": trace_id,
+                "answer_type": "answer",
+                "answer": f"According to {top_chunk.doc_id} ({top_chunk.section}): {top_chunk.content}",
+                "sources": sources_list,
+                "tools": [{"tool": "hybrid_retriever", "output": {"method": rag_res.retrieval_method, "doc_id": top_chunk.doc_id}}],
+                "pending_action": None,
+                "handed_to_human": None
+            }
+    except Exception:
+        pass
+
     # Default fallback
     return {
         "trace_id": trace_id,
@@ -520,6 +572,8 @@ def process_with_rag_agent(
     }
 
 def on_document_ingested(doc_id: str, doc_type: str, content: str):
-    """Called automatically when POST /ingest receives a new document."""
-    pass
->>>>>>> 574de03bc5c4c5c3d8b59f200425862a516889bd
+    """Hot-reloads the RAG retriever in memory when a new document is ingested."""
+    try:
+        _rag_retriever.reload()
+    except Exception:
+        pass
