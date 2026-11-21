@@ -135,6 +135,60 @@ def process_with_rag_agent(
         }
 
     # ----------------------------------------------------------------------
+    # 3.5 Passenger Identity & Profile Inquiries
+    # ----------------------------------------------------------------------
+    is_identity_query = any(phrase in msg_lower for phrase in [
+        "what is my name", "who am i", "my name", "my profile", "mera naam", 
+        "who i am", "my passenger id", "which user am i", "logged in as"
+    ])
+    if is_identity_query:
+        conn = get_db_connection()
+        c = conn.cursor()
+        c.execute("SELECT name, phone_last4, preferred_language FROM passengers WHERE passenger_id = ?", (passenger_id,))
+        p_row = c.fetchone()
+        conn.close()
+        if p_row:
+            p_name = p_row["name"] if isinstance(p_row, dict) else p_row[0]
+            p_phone = p_row["phone_last4"] if isinstance(p_row, dict) else p_row[1]
+            ans_text = f"You are logged in as {p_name} (Passenger ID: {passenger_id}, Registered Mobile: ••••{p_phone}). How can I assist you with your travels today?"
+        else:
+            ans_text = f"You are currently authenticated with Passenger ID: {passenger_id}."
+        return {
+            "trace_id": trace_id,
+            "answer_type": "answer",
+            "answer": ans_text,
+            "sources": [],
+            "tools": [{"tool": "get_passenger_profile", "output": {"passenger_id": passenger_id, "name": p_row["name"] if p_row else None}}],
+            "pending_action": None,
+            "handed_to_human": None
+        }
+
+    # ----------------------------------------------------------------------
+    # 3.6 Conversational Greetings
+    # ----------------------------------------------------------------------
+    pure_greetings = ["hi", "hello", "hey", "namaste", "good morning", "good evening", "good afternoon", "hi!", "hello!", "hey!"]
+    is_greeting = msg_lower in pure_greetings or (
+        msg_lower.startswith(("hi ", "hello ", "hey ", "namaste ")) 
+        and not any(k in msg_lower for k in ["train", "ticket", "cancel", "refund", "tatkal", "seat", "fare", "ur-", "status"])
+    )
+    if is_greeting:
+        conn = get_db_connection()
+        c = conn.cursor()
+        c.execute("SELECT name FROM passengers WHERE passenger_id = ?", (passenger_id,))
+        p_row = c.fetchone()
+        conn.close()
+        name_str = f" {p_row['name']}" if p_row else ""
+        return {
+            "trace_id": trace_id,
+            "answer_type": "answer",
+            "answer": f"Hello{name_str}! I am your Ujjwal Rail Travel Assistant. You can ask me about train schedules, seat availability, cancellation refunds, or railway rules. How can I help you today?",
+            "sources": [],
+            "tools": [],
+            "pending_action": None,
+            "handed_to_human": None
+        }
+
+    # ----------------------------------------------------------------------
     # 4. R2: Vague Queries (Follow-up clarification)
     # ----------------------------------------------------------------------
     vague_phrases = [
@@ -380,18 +434,36 @@ def process_with_rag_agent(
 
     # Station search
     route_match = re.search(r'(?:from|se)\s+([a-zA-Z\s]+?)\s+(?:to|ko|me)\s+([a-zA-Z\s]+?)(?:\s+(?:on|this|tomorrow|$))', msg_clean, re.I)
-    from_stn = route_match.group(1).strip() if route_match else "PUNE"
-    to_stn = route_match.group(2).strip() if route_match else "CSMT"
+    if not route_match:
+        route_match = re.search(r'([a-zA-Z]+)\s+(?:se|from)\s+([a-zA-Z]+)', msg_clean, re.I)
 
-    trains = search_trains(from_stn, to_stn, j_date)
-    if trains:
-        t_list = ", ".join([f"{t['train_no']} ({t['name']}, departs {t['departure_time']})" for t in trains[:3]])
+    has_train_intent = any(w in msg_lower for w in ["train", "trains", "gadi", "gaadi", "timetable", "schedule"])
+
+    if route_match:
+        from_stn = route_match.group(1).strip()
+        to_stn = route_match.group(2).strip()
+        trains = search_trains(from_stn, to_stn, j_date)
+        if trains:
+            t_list = ", ".join([f"{t['train_no']} ({t['name']}, departs {t['departure_time']})" for t in trains[:3]])
+            ans_text = f"Found {len(trains)} trains from {from_stn} to {to_stn} on {j_date}: {t_list}."
+        else:
+            ans_text = f"No direct trains found from {from_stn} to {to_stn} on {j_date}."
         return {
             "trace_id": trace_id,
             "answer_type": "answer",
-            "answer": f"Found {len(trains)} trains from {from_stn} to {to_stn} on {j_date}: {t_list}.",
+            "answer": ans_text,
             "sources": [{"doc_id": "RUL-BKG-01", "section": "Timetable & Routes"}],
             "tools": [{"tool": "search_trains", "output": {"count": len(trains), "trains": [t["train_no"] for t in trains]}}],
+            "pending_action": None,
+            "handed_to_human": None
+        }
+    elif has_train_intent:
+        return {
+            "trace_id": trace_id,
+            "answer_type": "clarification",
+            "answer": "Could you please specify your origin and destination stations (e.g., 'trains from Pune to CSMT') and travel date?",
+            "sources": [{"doc_id": "RUL-BKG-01", "section": "Timetable & Routes"}],
+            "tools": [],
             "pending_action": None,
             "handed_to_human": None
         }
@@ -400,7 +472,7 @@ def process_with_rag_agent(
     return {
         "trace_id": trace_id,
         "answer_type": "answer",
-        "answer": "Here is the official information from Ujjwal Rail published guidelines.",
+        "answer": "I am your Ujjwal Rail Travel Assistant. You can ask me about train schedules, seat availability, refund calculations, or railway policies.",
         "sources": [{"doc_id": "RUL-BKG-01", "section": "General Rules"}],
         "tools": [],
         "pending_action": None,
