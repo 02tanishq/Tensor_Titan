@@ -478,7 +478,8 @@ def handle_chat_query(passenger_id: str, session_id: str, message: str, as_of: O
     # 8. Level 1 Change Requests (confirm_needed)
     # ----------------------------------------------------------------------
     # Cancellation Request
-    if any(w in msg_lower for w in ["cancel my ticket", "cancel ticket", "cancel booking"]):
+    is_cancel_action = any(w in msg_lower for w in ["cancel", "radd"]) and not any(w in msg_lower for w in ["charge", "how much", "kitna", "rule", "policy", "deadline"])
+    if is_cancel_action:
         conn = get_db()
         c = conn.cursor()
         b_match = re.search(r'UR-\d{5}', msg_clean)

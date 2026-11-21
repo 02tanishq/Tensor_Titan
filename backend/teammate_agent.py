@@ -410,7 +410,8 @@ def process_with_rag_agent(
     # 7. Level 1 Actions (Cancellation & Booking Proposals)
     # ----------------------------------------------------------------------
     # Direct Cancellation Request
-    if any(w in msg_lower for w in ["cancel my ticket", "cancel ticket", "cancel booking"]):
+    is_cancel_action = any(w in msg_lower for w in ["cancel", "radd"]) and not any(w in msg_lower for w in ["charge", "how much", "kitna", "rule", "policy", "deadline"])
+    if is_cancel_action:
         conn = get_db_connection()
         c = conn.cursor()
         b_match = re.search(r'UR-\d{5}', msg_clean)
