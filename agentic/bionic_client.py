@@ -3,8 +3,12 @@ import os
 import re
 import urllib.request
 from typing import Any
+from dotenv import load_dotenv
 
-BIONIC_BASE_URL = os.getenv("BIONIC_BASE_URL", "http://localhost:1235/v1")
+# Load variables from .env file
+load_dotenv()
+
+BIONIC_BASE_URL = os.getenv("BIONIC_BASE_URL")
 BIONIC_MODEL = os.getenv("BIONIC_MODEL", "qwen3.5-0.8b")
 BIONIC_API_KEY = os.getenv("BIONIC_API_KEY", "")
 
@@ -68,12 +72,14 @@ def parse_intent_and_entities(message: str, timeout: float = 3.0) -> dict[str, A
         url = f"{os.getenv('GROK_BASE_URL', 'https://api.x.ai/v1').rstrip('/')}/chat/completions"
         headers = {"Content-Type": "application/json", "Authorization": f"Bearer {grok_key}"}
         model_name = os.getenv("GROK_MODEL", "grok-2-latest")
-    else:
+    elif BIONIC_BASE_URL:
         url = f"{BIONIC_BASE_URL.rstrip('/')}/chat/completions"
         headers = {"Content-Type": "application/json"}
         if BIONIC_API_KEY and BIONIC_API_KEY != "not_required":
             headers["Authorization"] = f"Bearer {BIONIC_API_KEY}"
-        model_name = BIONIC_MODEL
+        model_name = BIONIC_MODEL or "qwen3.5-0.8b"
+    else:
+        return fallback_parse(message)
 
     payload = {
         "model": model_name,
