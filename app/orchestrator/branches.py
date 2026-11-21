@@ -535,6 +535,67 @@ def execute_branch_e(
             tools=tool_traces
         )
 
+    # Level 0 Lookups: booking_status
+    if sub_req.intent == "booking_status":
+        from backend.domain_tools import get_booking_secure
+        if not slots.booking_id:
+            import sqlite3
+            with sqlite3.connect(config.DB_PATH) as conn:
+                conn.row_factory = sqlite3.Row
+                c = conn.cursor()
+                c.execute("""
+                    SELECT b.booking_id, b.train_no, t.name as train_name, b.from_code, b.to_code, 
+                           b.journey_date, b.class, b.status, b.amount_paid
+                    FROM bookings b
+                    LEFT JOIN trains t ON b.train_no = t.train_no
+                    WHERE b.passenger_id = ?
+                    ORDER BY b.journey_date DESC
+                """, (passenger_id,))
+                rows = [dict(r) for r in c.fetchall()]
+
+            if rows:
+                b_lines = [f"• {r['booking_id']}: Train {r['train_no']} ({r.get('train_name', '')}) {r['from_code']}➔{r['to_code']} on {r['journey_date']} | Class: {r['class']} | Status: {r['status']}" for r in rows]
+                msg = f"Here are your bookings ({passenger_id}):\n" + "\n".join(b_lines)
+            else:
+                msg = f"You do not have any registered bookings under Passenger ID {passenger_id}."
+
+            return PartResult(
+                sub_request_idx=idx,
+                answer_type="answer",
+                level=0,
+                text=msg,
+                tools=[ToolExecutionTrace(tool="list_passenger_bookings", output={"count": len(rows)})]
+            )
+
+        is_owned, refusal_msg = ownership_check(passenger_id, slots.booking_id, config.DB_PATH)
+        if not is_owned:
+            return PartResult(sub_request_idx=idx, answer_type="refusal", level=3, text=refusal_msg)
+
+        b_res = get_booking_secure(slots.booking_id, passenger_id)
+        if not b_res.get("authorized"):
+            return PartResult(sub_request_idx=idx, answer_type="refusal", level=3, text=b_res.get("message", "Booking not found or not accessible."))
+
+        bk = b_res["booking"]
+        travellers = bk.get("travellers", [])
+        if travellers:
+            trav_str = ", ".join([f"{t['traveller_name']} ({t['status']} {t.get('coach') or ''} {t.get('berth') or ''})".strip() for t in travellers])
+        else:
+            trav_str = "No travellers allotted"
+
+        if lang in ("hi", "hi-en"):
+            msg = f"Aapki booking {bk['booking_id']} (Train {bk['train_no']} - {bk.get('train_name', '')}) {bk['from_code']} se {bk['to_code']} ({bk['journey_date']}) ke liye {bk['status']} hai. Yatri: {trav_str}."
+        else:
+            msg = f"Booking details for {bk['booking_id']}: Train {bk['train_no']} ({bk.get('train_name', '')}) from {bk.get('from_name', bk['from_code'])} to {bk.get('to_name', bk['to_code'])} on {bk['journey_date']} is {bk['status']}. Travellers: {trav_str}."
+
+        tool_traces = [ToolExecutionTrace(tool="get_booking_status", output=bk)]
+        return PartResult(
+            sub_request_idx=idx,
+            answer_type="answer",
+            level=0,
+            text=msg,
+            tools=tool_traces
+        )
+
     # Fallback
     return PartResult(
         sub_request_idx=idx,
