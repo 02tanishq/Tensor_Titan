@@ -26,6 +26,7 @@ from backend.domain_tools import (
     get_audit_trace
 )
 from backend.agent_hook import handle_chat_query
+from agentic.router import router as agentic_router
 
 app = FastAPI(
     title="Ujjwal Rail Travel Assistant API",
@@ -41,6 +42,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount Teammate Agentic Action Engine Router
+app.include_router(agentic_router, tags=["Agentic Action Engine"])
 
 # ----------------------------------------------------------------------
 # Header-Only Identity Enforcement (R8 & Checklist E)

@@ -48,7 +48,14 @@ def handle_chat_query(passenger_id: str, session_id: str, message: str, as_of: O
     # If teammates have provided their RAG agent, delegate
     if TEAMMATE_MODULE_AVAILABLE:
         try:
-            return teammate_agent.process_with_rag_agent(passenger_id, session_id, message, as_of, trace_id)
+            res = teammate_agent.process_with_rag_agent(passenger_id, session_id, message, as_of, trace_id)
+            if res:
+                res["passenger_id"] = passenger_id
+                res["session_id"] = session_id
+                res["user_query"] = message
+                res["timestamp"] = as_of
+                save_audit_trace(res)
+                return res
         except Exception as e:
             print(f"[WARN] Teammate agent encountered error: {e}. Falling back to domain engine.")
 

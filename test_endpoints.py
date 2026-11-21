@@ -5,6 +5,11 @@ Unit & Integration Test Suite for all 7 Hackathon Endpoints
 import sys
 import os
 
+# Set UTF-8 and MOCK_LLM
+if sys.stdout.encoding != 'utf-8':
+    sys.stdout.reconfigure(encoding='utf-8')
+os.environ["MOCK_LLM"] = "true"
+
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 if CURRENT_DIR not in sys.path:
     sys.path.insert(0, CURRENT_DIR)
@@ -82,8 +87,9 @@ def test_all():
     r_conf = client.post(f"/actions/{action_id}/confirm", headers={"X-Passenger-Id": "PASS-001"})
     assert r_conf.status_code == 200
     res_conf = r_conf.json()
-    assert res_conf["status"] == "action_done"
-    print(f"[PASS] 5. POST /actions/{{id}}/confirm -> {res_conf['message']}")
+    assert res_conf.get("answer_type") == "action_done" or res_conf.get("status") == "action_done"
+    conf_msg = res_conf.get("answer") or res_conf.get("message")
+    print(f"[PASS] 5. POST /actions/{{id}}/confirm -> {conf_msg}")
 
     # Idempotency check: Calling it twice must not error or double-cancel
     r_conf2 = client.post(f"/actions/{action_id}/confirm", headers={"X-Passenger-Id": "PASS-001"})
