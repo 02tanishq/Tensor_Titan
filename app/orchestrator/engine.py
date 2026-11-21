@@ -26,6 +26,8 @@ from app.orchestrator.branches import (
     execute_branch_c,
     execute_branch_d,
     execute_branch_e,
+    execute_branch_greeting,
+    execute_branch_identity,
 )
 from app.orchestrator.composer import compose
 from app.db.audit import write_audit_trace
@@ -135,6 +137,10 @@ def handle_chat(
             res = execute_branch_d(sub_req, _retriever, as_of, lang, idx)
         elif branch == "E":
             res = execute_branch_e(sub_req, passenger_id, session, as_of, lang, idx)
+        elif branch == "G":
+            res = execute_branch_greeting(sub_req, passenger_id, lang, idx)
+        elif branch == "I":
+            res = execute_branch_identity(sub_req, passenger_id, lang, idx)
         else:
             res = execute_branch_b(sub_req, lang, idx)
 

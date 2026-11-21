@@ -61,7 +61,10 @@ def classify_level(intent: str, text: str) -> int:
     if intent in ("cancel", "change_boarding", "book"):
         return 1
 
-    # Level 0: Pure deterministic lookups
+    # Level 0: Pure deterministic lookups & conversational assistance
+    if intent in ("greeting", "identity"):
+        return 0
+
     return 0
 
 
@@ -70,9 +73,15 @@ def determine_branch(
     session: SessionState
 ) -> Tuple[str, str, int]:
     """
-    Determine execution Branch (A-E), answer_type, and change Level.
-    Returns: (branch: A|B|C|D|E, answer_type, level)
+    Determine execution Branch (A-E, G, I), answer_type, and change Level.
+    Returns: (branch: A|B|C|D|E|G|I, answer_type, level)
     """
+    # 0. Conversational greetings and identity
+    if sub_request.intent == "greeting":
+        return "G", "answer", 0
+    if sub_request.intent == "identity":
+        return "I", "answer", 0
+
     level = classify_level(sub_request.intent, sub_request.text)
 
     # 1. Level 3 -> Branch B: Policy Refusal
@@ -105,7 +114,15 @@ def determine_branch(
             return "E", "confirm_needed", 1
 
     # 4. Level 0 Lookups
-    if sub_request.intent in ("train_search", "seat_fare"):
+    if sub_request.intent == "seat_fare":
+        # If train_no is known OR both stations are known, proceed to branch E
+        if sub_request.slots.train_no or (sub_request.slots.from_stn and sub_request.slots.to_stn):
+            return "E", "answer", 0
+        if session.clarification_count >= config.MAX_CLARIFICATIONS:
+            return "C", "handed_to_human", 2
+        return "A", "clarification", 0
+
+    if sub_request.intent == "train_search":
         # If route missing
         if not sub_request.slots.from_stn or not sub_request.slots.to_stn:
             if session.clarification_count >= config.MAX_CLARIFICATIONS:

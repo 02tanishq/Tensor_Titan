@@ -14,6 +14,7 @@ class Slots(BaseModel):
     time_pref: Optional[str] = None
     cls: Optional[str] = None
     booking_id: Optional[str] = None
+    train_no: Optional[str] = None
 
 
 class SubRequest(BaseModel):
@@ -30,6 +31,8 @@ class SubRequest(BaseModel):
         "book",
         "complaint",
         "dispute",
+        "greeting",
+        "identity",
         "other"
     ]
     slots: Slots = Field(default_factory=Slots)

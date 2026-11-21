@@ -4,6 +4,8 @@ Unit & Integration Test Suite for all 7 Hackathon Endpoints
 
 import sys
 import os
+import json
+from typing import Any, Optional
 
 # Set UTF-8 and MOCK_LLM
 if sys.stdout.encoding != 'utf-8':
@@ -14,10 +16,78 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 if CURRENT_DIR not in sys.path:
     sys.path.insert(0, CURRENT_DIR)
 
-from fastapi.testclient import TestClient
-from backend.server import app
+from fastapi import HTTPException
+from backend.server import (
+    app,
+    health_check,
+    chat_endpoint,
+    confirm_action_endpoint,
+    cancel_action_endpoint,
+    get_booking_endpoint,
+    ingest_document,
+    ingest_endpoint,
+    get_trace_endpoint,
+    ChatRequest,
+    IngestRequest
+)
 
-client = TestClient(app)
+class DirectResponse:
+    def __init__(self, status_code: int, data: Any = None):
+        self.status_code = status_code
+        self._data = data or {}
+
+    def json(self):
+        return self._data
+
+    @property
+    def text(self):
+        return json.dumps(self._data) if isinstance(self._data, dict) else str(self._data)
+
+class DirectClient:
+    def get(self, url: str, headers: Optional[dict] = None):
+        headers = headers or {}
+        p_id = headers.get("X-Passenger-Id")
+        try:
+            if url == "/health":
+                return DirectResponse(200, health_check())
+            elif url.startswith("/bookings/"):
+                b_id = url.split("/")[2]
+                res = get_booking_endpoint(b_id, x_passenger_id=p_id)
+                return DirectResponse(200, res)
+            elif url.startswith("/trace/"):
+                tr_id = url.split("/")[2]
+                res = get_trace_endpoint(tr_id)
+                return DirectResponse(200, res)
+            return DirectResponse(404, {"detail": "Not found"})
+        except HTTPException as e:
+            return DirectResponse(e.status_code, {"detail": e.detail})
+
+    def post(self, url: str, headers: Optional[dict] = None, json: Optional[dict] = None):
+        headers = headers or {}
+        json_data = json or {}
+        p_id = headers.get("X-Passenger-Id")
+        try:
+            if url == "/chat":
+                req = ChatRequest(**json_data)
+                res = chat_endpoint(req, x_passenger_id=p_id)
+                return DirectResponse(200, res)
+            elif url.startswith("/actions/") and url.endswith("/confirm"):
+                act_id = url.split("/")[2]
+                res = confirm_action_endpoint(act_id, x_passenger_id=p_id)
+                return DirectResponse(200, res)
+            elif url.startswith("/actions/") and url.endswith("/cancel"):
+                act_id = url.split("/")[2]
+                res = cancel_action_endpoint(act_id, x_passenger_id=p_id)
+                return DirectResponse(200, res)
+            elif url == "/ingest":
+                req = IngestRequest(**json_data)
+                res = ingest_endpoint(req)
+                return DirectResponse(200, res)
+            return DirectResponse(404, {"detail": "Not found"})
+        except HTTPException as e:
+            return DirectResponse(e.status_code, {"detail": e.detail})
+
+client = DirectClient()
 
 def test_all():
     print("==================================================")

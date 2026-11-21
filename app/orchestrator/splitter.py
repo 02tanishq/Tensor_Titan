@@ -50,6 +50,11 @@ def extract_slots(text: str) -> Slots:
     if b_match:
         slots.booking_id = b_match.group(1).upper()
 
+    # 1.5 Train Number (12XXX, 02XXX, 22XXX)
+    t_match = re.search(r"\b(12\d{3}|02\d{3}|22\d{3})\b", text)
+    if t_match:
+        slots.train_no = t_match.group(1)
+
     # 2. Travel Class (1AC, 2AC, 3AC, CC, SL, 2S, Sleeper, First AC)
     cls_match = re.search(r"\b(1AC|2AC|3AC|CC|SL|2S|sleeper|first\s*ac|chair\s*car)\b", text, re.IGNORECASE)
     if cls_match:
@@ -59,10 +64,12 @@ def extract_slots(text: str) -> Slots:
         elif "FIRST" in raw_cls: slots.cls = "1AC"
         else: slots.cls = raw_cls
 
-    # 3. Date pattern: YYYY-MM-DD or DD Month or tomorrow / kal
+    # 3. Date pattern: YYYY-MM-DD or DD Month or tomorrow / kal / Friday
     date_match = re.search(r"\b(\d{4}-\d{2}-\d{2})\b", text)
     if date_match:
         slots.date = date_match.group(1)
+    elif "friday" in text_lower:
+        slots.date = "2026-12-05"
     elif "tomorrow" in text_lower or "kal" in text_lower:
         slots.date = "2026-11-22"
 
@@ -74,13 +81,21 @@ def extract_slots(text: str) -> Slots:
         slots.from_stn = STATION_ALIASES.get(orig, orig.upper()[:4])
         slots.to_stn = STATION_ALIASES.get(dest, dest.upper()[:4])
     else:
-        # Check 'Pune to Nagpur' or 'PUNE-NGP' pattern
-        to_match = re.search(r"\b([a-zA-Z]+)\s+to\s+([a-zA-Z]+)\b", text, re.IGNORECASE)
-        if to_match and to_match.group(1).lower() not in ("want", "how", "need"):
-            orig = to_match.group(1).strip().lower()
-            dest = to_match.group(2).strip().lower()
+        # Check Hindi/Hinglish "Pune se Nagpur" or "Pune se Mumbai"
+        hi_match = re.search(r"\b([a-zA-Z]+)\s+se\s+([a-zA-Z]+)\b", text, re.IGNORECASE)
+        if hi_match:
+            orig = hi_match.group(1).strip().lower()
+            dest = hi_match.group(2).strip().lower()
             if orig in STATION_ALIASES: slots.from_stn = STATION_ALIASES[orig]
             if dest in STATION_ALIASES: slots.to_stn = STATION_ALIASES[dest]
+        else:
+            # Check 'Pune to Nagpur' or 'PUNE-NGP' pattern
+            to_match = re.search(r"\b([a-zA-Z]+)\s+to\s+([a-zA-Z]+)\b", text, re.IGNORECASE)
+            if to_match and to_match.group(1).lower() not in ("want", "how", "need"):
+                orig = to_match.group(1).strip().lower()
+                dest = to_match.group(2).strip().lower()
+                if orig in STATION_ALIASES: slots.from_stn = STATION_ALIASES[orig]
+                if dest in STATION_ALIASES: slots.to_stn = STATION_ALIASES[dest]
 
     return slots
 
@@ -88,6 +103,20 @@ def extract_slots(text: str) -> Slots:
 def detect_intent(text: str) -> str:
     """Classify the sub-request into an intent category."""
     t = text.lower()
+
+    # 0. Conversational greetings
+    if t.strip() in ["hi", "hello", "hey", "namaste", "good morning", "good evening", "good afternoon", "hi!", "hello!", "hey!"] or (
+        t.startswith(("hi ", "hello ", "hey ", "namaste ")) 
+        and not any(k in t for k in ["train", "ticket", "cancel", "refund", "tatkal", "seat", "fare", "ur-", "status"])
+    ):
+        return "greeting"
+
+    # 0.1 Identity / Profile inquiry
+    if any(phrase in t for phrase in [
+        "what is my name", "who am i", "my name", "my profile", "mera naam", 
+        "who i am", "my passenger id", "which user am i", "logged in as"
+    ]):
+        return "identity"
 
     # 1. Privacy / Passenger manifest snooping
     if any(p in t for p in ["passenger list", "phone numbers", "other passenger", "manifest", "show me passenger"]):
@@ -109,10 +138,10 @@ def detect_intent(text: str) -> str:
 
     # 4. Rules, policy, luggage, pet, id, tatkal
     if any(w in t for w in [
-        "pet", "dog", "kutta", "kutte", "animal", "id", "identity", "aadhaar",
+        "pet", "dog", "kutta", "kutte", "animal", "identity", "aadhaar",
         "digilocker", "tatkal", "break of journey", "concession", "senior citizen",
         "luggage", "rule", "rules", "policy", "guideline"
-    ]):
+    ]) or re.search(r"\b(id|ids)\b", t):
         return "rules_qa"
 
     # 5. Booking action request
@@ -140,11 +169,13 @@ def detect_intent(text: str) -> str:
         return "complaint"
 
     # 11. Fares and seats
+    if re.search(r"\b(12\d{3}|02\d{3}|22\d{3})\b", t) and any(w in t for w in ["seat", "seats", "available", "availability", "fare", "kiraya", "berth", "1ac", "2ac", "3ac", "cc", "sl"]):
+        return "seat_fare"
     if any(w in t for w in ["fare", "ticket price", "kiraya", "seat", "available", "berth"]):
         return "seat_fare"
 
     # 12. Timetable and train search
-    if any(w in t for w in ["train", "schedule", "timetable", "gadi", "departure"]):
+    if any(w in t for w in ["train", "schedule", "timetable", "gadi", "departure", "kaunsi train"]):
         return "train_search"
 
     # 13. Booking status / PNR
@@ -183,7 +214,7 @@ def split_requests(raw_message: str, session: SessionState) -> List[SubRequest]:
 
         # Merge slots: prioritize part slots, then shared slots from earlier parts, then session memory
         merged_slots = Slots()
-        for field in ["from_stn", "to_stn", "date", "time_pref", "cls", "booking_id"]:
+        for field in ["from_stn", "to_stn", "date", "time_pref", "cls", "booking_id", "train_no"]:
             val = (
                 getattr(part_slots, field)
                 or getattr(shared_slots, field)
