@@ -67,11 +67,14 @@ def parse_intent_and_entities(message: str, timeout: float = 3.0) -> dict[str, A
         'Return ONLY a valid JSON object matching: {"intent": "...", "entities": {"booking_id": "..."}}.'
     )
 
-    grok_key = os.getenv("GROK_API_KEY", "").strip()
+    grok_key = os.getenv("GROK_API_KEY", "").strip() or os.getenv("GROQ_API_KEY", "").strip()
     if grok_key and grok_key != "your_grok_api_key_here":
-        url = f"{os.getenv('GROK_BASE_URL', 'https://api.x.ai/v1').rstrip('/')}/chat/completions"
+        default_base = "https://api.groq.com/openai/v1" if grok_key.startswith("gsk_") else "https://api.x.ai/v1"
+        base_url = (os.getenv("GROK_BASE_URL") or os.getenv("GROQ_BASE_URL") or default_base).rstrip("/")
+        default_model = "qwen/qwen3.8-27b" if grok_key.startswith("gsk_") else "grok-2-latest"
+        model_name = os.getenv("GROK_MODEL") or os.getenv("GROQ_MODEL") or default_model
+        url = f"{base_url}/chat/completions"
         headers = {"Content-Type": "application/json", "Authorization": f"Bearer {grok_key}"}
-        model_name = os.getenv("GROK_MODEL", "grok-2-latest")
     elif BIONIC_BASE_URL:
         url = f"{BIONIC_BASE_URL.rstrip('/')}/chat/completions"
         headers = {"Content-Type": "application/json"}

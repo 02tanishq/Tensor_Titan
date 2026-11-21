@@ -16,10 +16,10 @@ logger = logging.getLogger("app.llm_client")
 
 
 def is_grok_available() -> bool:
-    """Check if live Grok API is enabled and configured with a valid key."""
+    """Check if live Grok/Groq API is enabled and configured with a valid key."""
     if os.getenv("MOCK_LLM", "false").lower() == "true":
         return False
-    key = os.getenv("GROK_API_KEY", "").strip()
+    key = os.getenv("GROK_API_KEY", "").strip() or os.getenv("GROQ_API_KEY", "").strip()
     return bool(key and key != "your_grok_api_key_here")
 
 
@@ -30,15 +30,17 @@ def call_grok(
     timeout: float = 10.0
 ) -> Optional[str]:
     """
-    Executes a chat completion call to xAI's Grok API.
+    Executes a chat completion call to xAI Grok or Groq API.
     Returns None on failure to ensure seamless fallback to deterministic templates.
     """
     if not is_grok_available():
         return None
 
-    api_key = os.getenv("GROK_API_KEY", "").strip()
-    base_url = os.getenv("GROK_BASE_URL", "https://api.x.ai/v1").rstrip("/")
-    model = os.getenv("GROK_MODEL", "grok-2-latest")
+    api_key = os.getenv("GROK_API_KEY", "").strip() or os.getenv("GROQ_API_KEY", "").strip()
+    default_base = "https://api.groq.com/openai/v1" if api_key.startswith("gsk_") else "https://api.x.ai/v1"
+    base_url = (os.getenv("GROK_BASE_URL") or os.getenv("GROQ_BASE_URL") or default_base).rstrip("/")
+    default_model = "qwen/qwen3.8-27b" if api_key.startswith("gsk_") else "grok-2-latest"
+    model = os.getenv("GROK_MODEL") or os.getenv("GROQ_MODEL") or default_model
     url = f"{base_url}/chat/completions"
 
     headers = {
