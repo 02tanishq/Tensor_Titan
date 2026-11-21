@@ -192,6 +192,30 @@ if st.session_state.route == "chat":
         with st.chat_message(msg["role"]):
             st.write(msg["content"])
             
+            # If response executed RAG or domain tools
+            if msg.get("tools"):
+                rag_tools = [t for t in msg["tools"] if "rag" in t.get("tool", "").lower() or "retriever" in t.get("tool", "").lower()]
+                other_tools = [t for t in msg["tools"] if t not in rag_tools]
+                
+                if rag_tools:
+                    with st.expander("🔍 RAG Knowledge Retrieval Trace", expanded=False):
+                        for rt in rag_tools:
+                            out = rt.get("output", {})
+                            method = str(out.get("retrieval_method", "hybrid")).capitalize()
+                            badge_color = "#3b82f6" if method == "Exact" else "#10b981"
+                            st.markdown(f"<span style='background-color: {badge_color}22; color: {badge_color}; border: 1px solid {badge_color}; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;'>Method: {method} Retrieval</span>", unsafe_allow_html=True)
+                            st.markdown(f"**Top Document:** `{out.get('top_doc')}` | **Section:** `{out.get('top_section')}`")
+                            if out.get("clashes"):
+                                st.warning(f"⚖️ **Precedence Resolved:** Superseded earlier rule with active circular `{out.get('clashes')}`")
+                            if out.get("snippet"):
+                                st.caption(f"Retrieved Context: "{out.get('snippet')}..."")
+
+                if other_tools:
+                    with st.expander("⚡ Domain Tools Executed", expanded=False):
+                        for ot in other_tools:
+                            st.markdown(f"- **Tool:** `{ot.get('tool')}`")
+                            st.json(ot.get("output", {}))
+
             # If response contained citations
             if msg.get("sources"):
                 with st.expander("📚 Official Rules & Circulars Cited"):

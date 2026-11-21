@@ -43,4 +43,8 @@ def process_with_rag_agent(
 
 def on_document_ingested(doc_id: str, doc_type: str, content: str):
     """Called automatically when POST /ingest receives a new document."""
-    pass
+    try:
+        from app.orchestrator.engine import get_retriever
+        get_retriever().reload()
+    except Exception:
+        pass

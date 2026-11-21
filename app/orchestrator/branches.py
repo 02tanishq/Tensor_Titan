@@ -107,6 +107,53 @@ def execute_branch_identity(
         if grok_msg:
             msg = grok_msg
 
+    t_lower = sub_req.text.lower()
+    is_booking_inquiry = any(w in t_lower for w in ["booking", "bookings", "ticket", "tickets", "gadi", "gaadi", "booked"])
+    if is_booking_inquiry:
+        with sqlite3.connect(config.DB_PATH) as conn:
+            conn.row_factory = sqlite3.Row
+            c = conn.cursor()
+            c.execute("""
+                SELECT b.booking_id, b.train_no, t.name as train_name, b.from_code, b.to_code, 
+                       b.journey_date, b.class, b.status, b.amount_paid
+                FROM bookings b
+                LEFT JOIN trains t ON b.train_no = t.train_no
+                WHERE b.passenger_id = ?
+                ORDER BY b.journey_date DESC
+            """, (passenger_id,))
+            rows = c.fetchall()
+        if rows:
+            booking_lines = []
+            for r in rows:
+                t_name = f" ({r['train_name']})" if r['train_name'] else ""
+                booking_lines.append(
+                    f"• {r['booking_id']}: Train {r['train_no']}{t_name} from {r['from_code']} to {r['to_code']} on {r['journey_date']} "
+                    f"| Class: {r['class']} | Status: {r['status']} | Fare: Rs {r['amount_paid']}"
+                )
+            if lang in ("hi", "hi-en"):
+                msg = f"Aapke account ({passenger_id}) ke registered bookings:\n" + "\n".join(booking_lines)
+            else:
+                msg = f"Here are the bookings registered under your account ({passenger_id}):\n" + "\n".join(booking_lines)
+            b_list = [{"booking_id": r["booking_id"], "train_no": r["train_no"], "status": r["status"]} for r in rows]
+        else:
+            if lang in ("hi", "hi-en"):
+                msg = f"Aapke account ({passenger_id}) par koi booking darj nahi hai."
+            else:
+                msg = f"You do not have any registered bookings under Passenger ID {passenger_id}."
+            b_list = []
+
+        tool_traces = [
+            ToolExecutionTrace(tool="get_passenger_bookings", output={"count": len(rows), "bookings": b_list})
+        ]
+        return PartResult(
+            sub_request_idx=idx,
+            answer_type="answer",
+            level=0,
+            text=msg,
+            tools=tool_traces,
+            sources=[SourceCited(doc_id="RUL-BKG-01", section="2. Passenger Bookings")]
+        )
+
     tool_traces = [
         ToolExecutionTrace(tool="get_passenger_profile", output={"passenger_id": passenger_id, "name": p_name, "phone_last4": p_phone})
     ]
@@ -255,12 +302,27 @@ def execute_branch_d(
         if grok_ans:
             answer_text = grok_ans
 
+    tool_traces = [
+        ToolExecutionTrace(
+            tool="rag_hybrid_retriever",
+            output={
+                "retrieval_method": ret_result.retrieval_method,
+                "chunks_count": len(ret_result.chunks),
+                "top_doc": top_chunk.doc_id,
+                "top_section": top_chunk.section,
+                "clashes": [c.winning_doc_id for c in ret_result.clashes],
+                "snippet": top_chunk.content[:200]
+            }
+        )
+    ]
+
     return PartResult(
         sub_request_idx=idx,
         answer_type="answer",
         level=0,
         text=answer_text,
-        sources=sources
+        sources=sources,
+        tools=tool_traces
     )
 
 

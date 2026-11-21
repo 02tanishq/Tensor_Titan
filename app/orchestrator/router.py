@@ -45,7 +45,7 @@ def classify_level(intent: str, text: str) -> int:
     if any(p in t for p in [
         "jump waitlist", "bypass rule", "waive cancellation fee", "free ticket",
         "ignore rules", "change someone else", "flight", "weather in tokyo", "pizza",
-        "without paying", "waitlist ticket to confirmed", "to confirmed seat", "free upgrade",
+        "without paying", "waitlist ticket to confirmed", "to confirmed seat", "to confirmed status", "free upgrade",
         "change passenger name", "transfer ticket"
     ]):
         return 3
@@ -53,7 +53,7 @@ def classify_level(intent: str, text: str) -> int:
     # Level 2: Staff decisions / Escalations
     if any(p in t for p in [
         "harass", "complaint", "grievance", "stolen", "dispute", "sue",
-        "speak to human", "talk to agent", "escalate"
+        "speak to human", "talk to agent", "escalate", "haven't received", "havent received", "not received refund"
     ]) or intent in ("complaint", "dispute"):
         return 2
 
@@ -76,12 +76,6 @@ def determine_branch(
     Determine execution Branch (A-E, G, I), answer_type, and change Level.
     Returns: (branch: A|B|C|D|E|G|I, answer_type, level)
     """
-    # 0. Conversational greetings and identity
-    if sub_request.intent == "greeting":
-        return "G", "answer", 0
-    if sub_request.intent == "identity":
-        return "I", "answer", 0
-
     level = classify_level(sub_request.intent, sub_request.text)
 
     # 1. Level 3 -> Branch B: Policy Refusal
@@ -92,6 +86,12 @@ def determine_branch(
     if level == 2:
         return "C", "handed_to_human", 2
 
+    # 0. Conversational greetings and identity
+    if sub_request.intent == "greeting":
+        return "G", "answer", 0
+    if sub_request.intent == "identity":
+        return "I", "answer", 0
+
     # 3. Level 1 -> Check if required slots are present
     if level == 1:
         if sub_request.intent == "book":
@@ -99,7 +99,7 @@ def determine_branch(
 
         if sub_request.intent == "cancel":
             if not sub_request.slots.booking_id:
-                # Missing booking reference -> Branch A: Clarification
+                # Missing booking reference -> Branch A: Clarification (Max 2 before Hand-off)
                 if session.clarification_count >= config.MAX_CLARIFICATIONS:
                     # Fallback ladder: Asked twice -> Hand-off
                     return "C", "handed_to_human", 2

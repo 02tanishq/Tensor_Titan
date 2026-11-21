@@ -107,7 +107,7 @@ def detect_intent(text: str) -> str:
     # 0. Conversational greetings
     if t.strip() in ["hi", "hello", "hey", "namaste", "good morning", "good evening", "good afternoon", "hi!", "hello!", "hey!"] or (
         t.startswith(("hi ", "hello ", "hey ", "namaste ")) 
-        and not any(k in t for k in ["train", "ticket", "cancel", "refund", "tatkal", "seat", "fare", "ur-", "status"])
+        and not any(k in t for k in ["train", "ticket", "cancel", "refund", "tatkal", "seat", "fare", "ur-", "status", "name", "naam", "profile", "who"])
     ):
         return "greeting"
 
@@ -116,6 +116,19 @@ def detect_intent(text: str) -> str:
         "what is my name", "who am i", "my name", "my profile", "mera naam", 
         "who i am", "my passenger id", "which user am i", "logged in as"
     ]):
+        return "identity"
+
+    # 0.2 Passenger Bookings Inquiry (What bookings do I have?)
+    has_booking_term = any(w in t for w in ["booking", "bookings", "ticket", "tickets", "gadi", "gaadi"])
+    has_self_ref = any(w in t for w in [
+        "my", "mine", "i have", "i made", "i booked", "done by me", "for me", "with me",
+        "meri", "mere", "mera", "maine", "apni", "hamari", "humari", "kon kon", "kon si", "which", "give all", "tell me"
+    ])
+    has_action_or_rules = any(w in t for w in [
+        "cancel", "radd", "refund", "charge", "fare", "price", "kitna", "rule", "rules", "policy", "fee", "dog", "pet",
+        "waitlist", "change", "confirm", "upgrade", "status"
+    ])
+    if has_booking_term and has_self_ref and not has_action_or_rules:
         return "identity"
 
     # 1. Privacy / Passenger manifest snooping
@@ -153,7 +166,7 @@ def detect_intent(text: str) -> str:
         return "train_search"
 
     # 7. Specific Cancellation Action
-    if any(w in t for w in ["cancel my ticket", "cancel ticket", "cancel booking", "cancel my booking", "cancel it", "cancel"]):
+    if any(w in t for w in ["cancel my ticket", "cancel ticket", "cancel booking", "cancel my booking", "cancel it", "cancel"]) and not any(w in t for w in ["was cancelled", "haven't received", "havent received", "not received"]):
         return "cancel"
 
     # 8. Specific Refund Quote Action
@@ -165,7 +178,7 @@ def detect_intent(text: str) -> str:
         return "change_boarding"
 
     # 10. Complaints and human escalation
-    if any(w in t for w in ["complain", "complaint", "grievance", "harassment", "lost bag", "human", "agent"]):
+    if any(w in t for w in ["complain", "complaint", "grievance", "harassment", "lost bag", "human", "agent", "dispute", "haven't received", "havent received", "not received"]):
         return "complaint"
 
     # 11. Fares and seats
