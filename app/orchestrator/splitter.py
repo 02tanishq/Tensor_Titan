@@ -178,7 +178,7 @@ def detect_intent(text: str) -> str:
         return "change_boarding"
 
     # 10. Complaints and human escalation
-    if any(w in t for w in ["complain", "complaint", "grievance", "harassment", "lost bag", "human", "agent", "dispute", "haven't received", "havent received", "not received"]):
+    if any(w in t for w in ["complain", "complaint", "grievance", "harassment", "lost bag", "human", "agent", "dispute", "haven't received", "havent received", "not received", "executive", "officer", "manager", "representative"]):
         return "complaint"
 
     # 11. Fares and seats

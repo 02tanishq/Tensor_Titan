@@ -50,10 +50,11 @@ def classify_level(intent: str, text: str) -> int:
     ]):
         return 3
 
-    # Level 2: Staff decisions / Escalations
+    # Level 2: Staff decisions / Escalations / Human hand-off
     if any(p in t for p in [
         "harass", "complaint", "grievance", "stolen", "dispute", "sue",
-        "speak to human", "talk to agent", "escalate", "haven't received", "havent received", "not received refund"
+        "speak to human", "talk to agent", "escalate", "haven't received", "havent received", "not received refund",
+        "human", "executive", "agent", "officer", "manager", "supervisor", "representative"
     ]) or intent in ("complaint", "dispute"):
         return 2
 

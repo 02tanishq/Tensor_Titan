@@ -243,9 +243,21 @@ def execute_branch_c(
     desk = "Grievance Redressal Desk" if sub_req.intent in ("complaint", "dispute") else "Passenger Support Desk"
 
     if lang == "hi-en":
-        msg = f"Aapka request hamare human {desk} ko bhej diya gaya hai (Ticket #{ticket_id}). Hamari team aapse sampark karegi."
+        msg = (
+            f"Aapka request hamare human {desk} ko escalate kar diya gaya hai (Ticket #{ticket_id}).\n"
+            f"• Executive Support Helpline: 139 (Toll-Free: 1800-111-139)\n"
+            f"• Grievance Desk Email: grievance@ujjwalrail.gov.in\n"
+            f"• Operating Hours: 24x7 Executive Cell\n"
+            f"Hamara executive aapse jald hi sampark karega."
+        )
     else:
-        msg = f"I have escalated your request regarding '{sub_req.text}' to our {desk}. Ticket ID #{ticket_id} has been logged. An official representative will review this."
+        msg = (
+            f"I have escalated your request regarding '{sub_req.text}' to our {desk}. Ticket ID #{ticket_id} has been logged.\n"
+            f"• Executive Support Helpline: 139 (Toll-Free: 1800-111-139)\n"
+            f"• Grievance Desk Email: grievance@ujjwalrail.gov.in\n"
+            f"• Operating Hours: 24x7 Executive Cell\n"
+            f"An official executive will review your ticket and assist you shortly."
+        )
 
     hand_off = HandedToHuman(
         desk=desk,
