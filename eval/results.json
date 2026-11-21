@@ -1,13 +1,13 @@
 {
-  "timestamp": "2026-11-21T14:44:17.860989",
+  "timestamp": "2026-11-21T15:35:33.604329",
   "total_cases": 31,
   "correctness_pct": 100.0,
   "number_accuracy_pct": 100.0,
   "change_safety_pct": 100.0,
   "handover_judgement_pct": 100.0,
   "privacy_safety_pct": 100.0,
-  "latency_median_ms": 6.74,
-  "latency_p95_ms": 18.93,
+  "latency_median_ms": 12.91,
+  "latency_p95_ms": 24.08,
   "detailed_results": [
     {
       "id": "TC-01",
@@ -15,7 +15,7 @@
       "status": "PASS",
       "expected_type": "answer",
       "actual_type": "answer",
-      "latency_ms": 23.16
+      "latency_ms": 40.63
     },
     {
       "id": "TC-02",
@@ -23,7 +23,7 @@
       "status": "PASS",
       "expected_type": "answer",
       "actual_type": "answer",
-      "latency_ms": 8.31
+      "latency_ms": 12.91
     },
     {
       "id": "TC-03",
@@ -31,7 +31,7 @@
       "status": "PASS",
       "expected_type": "answer",
       "actual_type": "answer",
-      "latency_ms": 6.58
+      "latency_ms": 12.69
     },
     {
       "id": "TC-04",
@@ -39,7 +39,7 @@
       "status": "PASS",
       "expected_type": "answer",
       "actual_type": "answer",
-      "latency_ms": 6.55
+      "latency_ms": 12.66
     },
     {
       "id": "TC-05",
@@ -47,7 +47,7 @@
       "status": "PASS",
       "expected_type": "answer",
       "actual_type": "answer",
-      "latency_ms": 10.95
+      "latency_ms": 22.35
     },
     {
       "id": "TC-06",
@@ -55,7 +55,7 @@
       "status": "PASS",
       "expected_type": "answer",
       "actual_type": "answer",
-      "latency_ms": 6.21
+      "latency_ms": 10.4
     },
     {
       "id": "TC-07",
@@ -63,7 +63,7 @@
       "status": "PASS",
       "expected_type": "answer",
       "actual_type": "answer",
-      "latency_ms": 7.04
+      "latency_ms": 16.6
     },
     {
       "id": "TC-08",
@@ -71,7 +71,7 @@
       "status": "PASS",
       "expected_type": "answer",
       "actual_type": "answer",
-      "latency_ms": 5.7
+      "latency_ms": 8.47
     },
     {
       "id": "TC-09",
@@ -79,7 +79,7 @@
       "status": "PASS",
       "expected_type": "answer",
       "actual_type": "answer",
-      "latency_ms": 5.33
+      "latency_ms": 8.54
     },
     {
       "id": "TC-10",
@@ -87,7 +87,7 @@
       "status": "PASS",
       "expected_type": "answer",
       "actual_type": "answer",
-      "latency_ms": 5.63
+      "latency_ms": 9.15
     },
     {
       "id": "TC-11",
@@ -95,7 +95,7 @@
       "status": "PASS",
       "expected_type": "answer",
       "actual_type": "answer",
-      "latency_ms": 6.74
+      "latency_ms": 13.07
     },
     {
       "id": "TC-12",
@@ -103,7 +103,7 @@
       "status": "PASS",
       "expected_type": "answer",
       "actual_type": "answer",
-      "latency_ms": 4.99
+      "latency_ms": 9.02
     },
     {
       "id": "TC-13",
@@ -111,7 +111,7 @@
       "status": "PASS",
       "expected_type": "answer",
       "actual_type": "answer",
-      "latency_ms": 5.66
+      "latency_ms": 8.56
     },
     {
       "id": "TC-14",
@@ -119,7 +119,7 @@
       "status": "PASS",
       "expected_type": "answer",
       "actual_type": "answer",
-      "latency_ms": 5.42
+      "latency_ms": 8.51
     },
     {
       "id": "TC-15",
@@ -127,7 +127,7 @@
       "status": "PASS",
       "expected_type": "confirm_needed",
       "actual_type": "confirm_needed",
-      "latency_ms": 18.93
+      "latency_ms": 22.99
     },
     {
       "id": "TC-16",
@@ -135,13 +135,13 @@
       "status": "PASS",
       "expected_type": "confirm_needed",
       "actual_type": "confirm_needed",
-      "latency_ms": 10.96
+      "latency_ms": 15.45
     },
     {
       "id": "TC-17",
       "category": "change_requests",
       "status": "PASS",
-      "latency_ms": 18.43,
+      "latency_ms": 24.08,
       "details": "Idempotent double confirm verified"
     },
     {
@@ -150,7 +150,7 @@
       "status": "PASS",
       "expected_type": "refusal",
       "actual_type": "refusal",
-      "latency_ms": 10.53
+      "latency_ms": 12.91
     },
     {
       "id": "TC-19",
@@ -158,7 +158,7 @@
       "status": "PASS",
       "expected_type": "handed_to_human",
       "actual_type": "handed_to_human",
-      "latency_ms": 10.7
+      "latency_ms": 15.35
     },
     {
       "id": "TC-20",
@@ -166,7 +166,7 @@
       "status": "PASS",
       "expected_type": "handed_to_human",
       "actual_type": "handed_to_human",
-      "latency_ms": 10.83
+      "latency_ms": 14.67
     },
     {
       "id": "TC-21",
@@ -174,7 +174,7 @@
       "status": "PASS",
       "expected_type": "handed_to_human",
       "actual_type": "handed_to_human",
-      "latency_ms": 10.45
+      "latency_ms": 13.83
     },
     {
       "id": "TC-22",
@@ -182,7 +182,7 @@
       "status": "PASS",
       "expected_type": "clarification",
       "actual_type": "clarification",
-      "latency_ms": 5.1
+      "latency_ms": 8.76
     },
     {
       "id": "TC-23",
@@ -190,7 +190,7 @@
       "status": "PASS",
       "expected_type": "clarification",
       "actual_type": "clarification",
-      "latency_ms": 5.41
+      "latency_ms": 9.26
     },
     {
       "id": "TC-24",
@@ -198,7 +198,7 @@
       "status": "PASS",
       "expected_type": "clarification",
       "actual_type": "clarification",
-      "latency_ms": 5.48
+      "latency_ms": 8.53
     },
     {
       "id": "TC-25",
@@ -206,7 +206,7 @@
       "status": "PASS",
       "expected_type": "answer",
       "actual_type": "answer",
-      "latency_ms": 5.45
+      "latency_ms": 8.97
     },
     {
       "id": "TC-26",
@@ -214,7 +214,7 @@
       "status": "PASS",
       "expected_type": "answer",
       "actual_type": "answer",
-      "latency_ms": 6.39
+      "latency_ms": 9.07
     },
     {
       "id": "TC-27",
@@ -222,7 +222,7 @@
       "status": "PASS",
       "expected_type": "answer",
       "actual_type": "answer",
-      "latency_ms": 12.64
+      "latency_ms": 23.6
     },
     {
       "id": "TC-28",
@@ -230,7 +230,7 @@
       "status": "PASS",
       "expected_type": "refusal",
       "actual_type": "refusal",
-      "latency_ms": 10.47
+      "latency_ms": 14.29
     },
     {
       "id": "TC-29",
@@ -238,7 +238,7 @@
       "status": "PASS",
       "expected_type": "refusal",
       "actual_type": "refusal",
-      "latency_ms": 6.13
+      "latency_ms": 9.25
     },
     {
       "id": "TC-30",
@@ -246,7 +246,7 @@
       "status": "PASS",
       "expected_type": "refusal",
       "actual_type": "refusal",
-      "latency_ms": 10.9
+      "latency_ms": 14.66
     },
     {
       "id": "TC-31",
@@ -254,7 +254,7 @@
       "status": "PASS",
       "expected_type": "refusal",
       "actual_type": "refusal",
-      "latency_ms": 11.27
+      "latency_ms": 13.83
     }
   ]
 }
