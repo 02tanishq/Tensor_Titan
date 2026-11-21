@@ -1,0 +1,331 @@
+{
+  "operator": "Ujjwal Rail",
+  "generated_at": "2026-11-21T11:39:38.189455",
+  "rules_count": 12,
+  "circulars_count": 6,
+  "faqs_count": 20,
+  "rules": [
+    {
+      "doc_id": "RUL-BKG-01",
+      "title": "General Booking and Reservation Guidelines",
+      "category": "Booking",
+      "effective_date": "2025-01-01",
+      "content": "Section 1. Advance Reservation Period (ARP): Tickets can be booked up to 120 days in advance (excluding the date of journey). Section 2. Maximum Passengers: A maximum of 6 passengers can be booked on a single standard ticket, and 4 passengers on a Tatkal ticket. Section 3. Booking Window: Online booking is open from 00:30 hrs to 23:45 hrs daily. Maintenance window operates between 23:45 hrs and 00:30 hrs."
+    },
+    {
+      "doc_id": "RUL-CLS-01",
+      "title": "Travel Classes and Accommodation Types",
+      "category": "Classes",
+      "effective_date": "2025-01-01",
+      "content": "Section 1. Classes Offered: Ujjwal Rail operates 1AC (First AC), 2AC (Two-Tier AC), 3AC (Three-Tier AC), CC (AC Chair Car), SL (Sleeper Class), and 2S (Second Sitting). Section 2. Berth Dimensions and Bedrolls: Complimentary bedrolls are provided in 1AC, 2AC, and 3AC. Sleeper class passengers may rent bedrolls on select routes subject to prior notification."
+    },
+    {
+      "doc_id": "RUL-CAN-01",
+      "title": "Ticket Cancellation and Refund Policy",
+      "category": "Cancellation",
+      "effective_date": "2025-01-01",
+      "content": "Section 1. Cut-off Tiers: (a) More than 48 hours before scheduled train departure: Flat cancellation deduction per passenger: 1AC=Rs 240, 2AC=Rs 180, 3AC=Rs 150, SL=Rs 100, 2S=Rs 50. (b) Between 48 hours and up to 12 hours before scheduled departure: 25% of the total fare paid, subject to minimum flat cancellation fee of the class. (c) Between 12 hours and up to 4 hours before scheduled departure (or chart preparation): 50% of the total fare paid, subject to minimum flat cancellation fee. (d) Less than 4 hours before departure or after chart preparation: No refund admissible on confirmed tickets. Section 2. Computation: Cut-off time is computed strictly against the scheduled departure of the train from the ticket's booked origin station."
+    },
+    {
+      "doc_id": "RUL-WL-01",
+      "title": "Waitlist (WL) and Reservation Against Cancellation (RAC)",
+      "category": "Waitlist",
+      "effective_date": "2025-01-01",
+      "content": "Section 1. RAC Privileges: RAC ticket holders are guaranteed travel accommodation with a shared lower berth. If cancellations occur, RAC passengers are upgraded to confirmed berths in order of booking. Section 2. Fully Waitlisted E-Tickets: E-tickets where all passenger statuses remain Waitlisted (WL) after final chart preparation are automatically cancelled by the system, and full fare is refunded to the source account without deduction. Section 3. Partially Confirmed Tickets: If at least one passenger is CNF/RAC on a PNR while others are WL, the WL passenger may travel only if permitted by the on-board Ticket Examiner, or file a TDR up to 30 minutes before departure for a refund."
+    },
+    {
+      "doc_id": "RUL-TAT-01",
+      "title": "Tatkal Booking Scheme and Guidelines",
+      "category": "Tatkal",
+      "effective_date": "2025-01-01",
+      "content": "Section 1. Timings: Tatkal booking opens at 10:00 AM for AC classes (1AC, 2AC, 3AC, CC) and at 11:00 AM for Non-AC classes (SL, 2S) on the day prior to the train journey from originating station. Section 2. Charges: Tatkal charges are fixed at 10% of basic fare for Second Sitting and 30% of basic fare for all other classes, subject to a minimum of Rs 100 for SL and Rs 250 for 3AC. Section 3. Cancellation: No refund is granted on cancellation of confirmed Tatkal tickets under normal conditions."
+    },
+    {
+      "doc_id": "RUL-ID-01",
+      "title": "Accepted Proofs of Identity for Travel",
+      "category": "Identity",
+      "effective_date": "2025-01-01",
+      "content": "Section 1. Mandatory ID: At least one passenger booked on a ticket must carry an original valid identity card during the journey. Section 2. Prescribed Documents: Accepted IDs include: (1) Aadhaar Card (physical or m-Aadhaar), (2) Voter Photo Identity Card, (3) Passport, (4) Driving Licence, (5) Pan Card, (6) Central/State Govt. Employee ID, (7) Student ID issued by recognized institutions, (8) Nationalised Bank Passbook with photograph."
+    },
+    {
+      "doc_id": "RUL-LUG-01",
+      "title": "Luggage Allowances and Pet Transportation",
+      "category": "Luggage",
+      "effective_date": "2025-01-01",
+      "content": "Section 1. Free Baggage Allowance: 1AC: 70 kg, 2AC: 50 kg, 3AC/CC: 40 kg, SL: 40 kg, 2S: 35 kg. Marginal allowance of 10 kg permitted. Section 2. Pet Dogs Carriage: Dogs can only be carried in 1AC (First AC) coaches provided the passenger books the entire two-berth coupe or four-berth cabin. Dogs are strictly prohibited in 2AC, 3AC, CC, SL, and 2S coaches. Breaches will incur penalty of 6 times the luggage rate."
+    },
+    {
+      "doc_id": "RUL-CON-01",
+      "title": "Concession Rules and Senior Citizen Entitlements",
+      "category": "Concessions",
+      "effective_date": "2025-01-01",
+      "content": "Section 1. Eligibility: Concessions are available to Divyangjan (orthopaedically handicapped, visually impaired, hearing impaired), cancer patients, and accredited journalists upon verification of prescribed medical certificates. Section 2. Senior Citizens: General senior citizen concessions remain suspended; only verified medical concessions apply. Valid certificate must be presented during ticket issuance."
+    },
+    {
+      "doc_id": "RUL-BRD-01",
+      "title": "Change of Boarding Station Guidelines",
+      "category": "Boarding",
+      "effective_date": "2025-01-01",
+      "content": "Section 1. Permissible Timeframe: Passengers can change their boarding station online up to 4 hours prior to the scheduled departure of the train from its originating station (or before first chart preparation, whichever is earlier). Section 2. Conditions: Boarding station can be changed only once per booking. Once changed, the passenger forfeits the right to board at the original station."
+    },
+    {
+      "doc_id": "RUL-DIS-01",
+      "title": "Disruption, Train Cancellation and Delay Refunds",
+      "category": "Refunds",
+      "effective_date": "2025-01-01",
+      "content": "Section 1. Train Cancelled by Operator: If a train is cancelled by Ujjwal Rail due to technical, natural, or operational reasons, a 100% full refund of the ticket amount is automatically processed without any cancellation charge. Section 2. Train Delayed by over 3 Hours: If the train is delayed at the passenger's boarding station by more than 3 hours and the passenger elects not to travel, a full refund is admissible provided a Ticket Deposit Receipt (TDR) is filed before actual train departure."
+    },
+    {
+      "doc_id": "RUL-CMP-01",
+      "title": "Complaints, Grievances and Harassment Reporting",
+      "category": "Complaints",
+      "effective_date": "2025-01-01",
+      "content": "Section 1. Grievance Redressal: General complaints regarding catering, cleanliness, or refund discrepancies must be logged via Helpdesk ticket. Section 2. Safety and Security Emergency: Reports of theft, assault, harassment of women passengers, or medical emergencies must be escalated immediately to the Rail Security Control Room with Train Number, Coach, and Berth details."
+    },
+    {
+      "doc_id": "RUL-BRK-01",
+      "title": "Break of Journey and Intermediate Transit Rules",
+      "category": "Transit",
+      "effective_date": "2025-01-01",
+      "content": "Section 1. Eligibility: Break of journey is permitted only on tickets covering a distance of more than 500 km. The first break of journey is permissible only after completing 500 km of travel. Section 2. Duration: Break of journey is allowed for a maximum of 2 days per break, excluding day of arrival and departure."
+    }
+  ],
+  "circulars": [
+    {
+      "doc_id": "CIR-2026-01",
+      "title": "Revision of Flat Cancellation Charges for AC Classes",
+      "issue_date": "2026-01-15",
+      "effective_date": "2026-02-01",
+      "modifies_rule": "RUL-CAN-01",
+      "content": "Effective 01-Feb-2026, cancellation charges for cancellations done more than 48 hours prior to train departure are revised as follows: 2AC: Revised from Rs 180 to Rs 200 per passenger. 3AC: Revised from Rs 150 to Rs 180 per passenger. Sleeper (SL) remains unchanged at Rs 120. First AC (1AC) remains at Rs 240. This circular supersedes RUL-CAN-01 Section 1(a).",
+      "language": "en"
+    },
+    {
+      "doc_id": "CIR-2026-02",
+      "title": "Revision of Minimum Tatkal Surcharge and Distance Cap",
+      "issue_date": "2026-03-10",
+      "effective_date": "2026-04-01",
+      "modifies_rule": "RUL-TAT-01",
+      "content": "Effective 01-Apr-2026, minimum Tatkal booking surcharge is revised: Sleeper class minimum charge is increased from Rs 100 to Rs 150. 3AC minimum Tatkal charge is increased from Rs 250 to Rs 300. Supersedes RUL-TAT-01 Section 2.",
+      "language": "en"
+    },
+    {
+      "doc_id": "CIR-2026-03",
+      "title": "Winter Festival Special Trains Schedule Notification",
+      "issue_date": "2026-10-01",
+      "effective_date": "2026-11-01",
+      "modifies_rule": null,
+      "content": "To clear heavy festival passenger rush, Ujjwal Rail announces special trains 02125 (Pune to Nagpur Winter Special) and 02126 (Nagpur to Pune Winter Special) running bi-weekly with 2AC, 3AC, and Sleeper accommodation.",
+      "language": "en"
+    },
+    {
+      "doc_id": "CIR-2026-04",
+      "title": "बच्चों के लिए टिकट व सीट आवंटन नीति में संशोधन",
+      "issue_date": "2026-05-10",
+      "effective_date": "2026-06-01",
+      "modifies_rule": "RUL-BKG-01",
+      "content": "01 जून 2026 से प्रभावी: 5 वर्ष से 11 वर्ष तक के बच्चों के लिए यदि अलग बर्थ नहीं ली जाती है, तो मूल किराये का 50% देय होगा। यदि अलग बर्थ मांगी जाती है, तो पूरा वयस्क किराया लागू होगा। (Child ticket rule revision: half fare for child without berth, full fare with berth).",
+      "language": "hi"
+    },
+    {
+      "doc_id": "CIR-2026-05",
+      "title": "Advance Revision of Holiday Cancellation Cut-Off Window (Future Date)",
+      "issue_date": "2026-11-15",
+      "effective_date": "2026-12-01",
+      "modifies_rule": "RUL-CAN-01",
+      "content": "Notice is hereby given that effective from 01-Dec-2026, during peak winter holidays (Dec 15 to Jan 5), the tier-2 cancellation cut-off shall be 72 hours instead of 48 hours. Until 30-Nov-2026, standard 48 hours rule continues to apply strictly.",
+      "language": "en"
+    },
+    {
+      "doc_id": "CIR-2026-06",
+      "title": "Introduction of Mandatory Handheld Terminal E-Verification",
+      "issue_date": "2026-07-20",
+      "effective_date": "2026-08-01",
+      "modifies_rule": "RUL-ID-01",
+      "content": "Travelling Ticket Examiners (TTEs) are now equipped with biometric and QR code scanners. Passengers displaying m-Aadhaar or Digilocker certificates are recognized as verified digital ID proofs.",
+      "language": "en"
+    }
+  ],
+  "faqs": [
+    {
+      "faq_id": "FAQ-001",
+      "question": "Can I carry my pet dog in 2AC or 3AC coach?",
+      "answer": "No. Under rule RUL-LUG-01, dogs are strictly prohibited in 2AC, 3AC, CC, and Sleeper coaches. You may only carry your pet dog in 1AC (First AC) by booking an entire 2-berth coupe or 4-berth cabin.",
+      "category": "Luggage",
+      "language": "en",
+      "is_outdated": 0,
+      "superseded_by": null
+    },
+    {
+      "faq_id": "FAQ-002",
+      "question": "What happens if my ticket is still on waitlist after chart preparation?",
+      "answer": "Under rule RUL-WL-01, if your e-ticket remains fully waitlisted after final charting, the system automatically cancels it. Full refund is credited directly to your bank account without any deduction.",
+      "category": "Waitlist",
+      "language": "en",
+      "is_outdated": 0,
+      "superseded_by": null
+    },
+    {
+      "faq_id": "FAQ-003",
+      "question": "Which identity cards are accepted for travel?",
+      "answer": "According to RUL-ID-01, valid proofs include original Aadhaar, Voter ID, Passport, Driving Licence, Pan Card, or DigiLocker verified digital copies.",
+      "category": "Identity",
+      "language": "en",
+      "is_outdated": 0,
+      "superseded_by": null
+    },
+    {
+      "faq_id": "FAQ-004",
+      "question": "What is the cancellation charge for 2AC if cancelled more than 48 hours before departure?",
+      "answer": "The cancellation charge for 2AC is Rs 180 per passenger.",
+      "category": "Cancellation",
+      "language": "en",
+      "is_outdated": 1,
+      "superseded_by": "CIR-2026-01"
+    },
+    {
+      "faq_id": "FAQ-005",
+      "question": "Can I change my boarding station after booking?",
+      "answer": "Yes, as per RUL-BRD-01, you can change your boarding station online up to 4 hours before the train's scheduled departure from originating station. It can only be done once.",
+      "category": "Boarding",
+      "language": "en",
+      "is_outdated": 0,
+      "superseded_by": null
+    },
+    {
+      "faq_id": "FAQ-006",
+      "question": "What is the refund if Ujjwal Rail cancels my train?",
+      "answer": "Under RUL-DIS-01, if a train is cancelled by the operator, you receive a 100% full refund automatically into your payment source account without any cancellation fee deduction.",
+      "category": "Refunds",
+      "language": "en",
+      "is_outdated": 0,
+      "superseded_by": null
+    },
+    {
+      "faq_id": "FAQ-007",
+      "question": "When does Tatkal booking open?",
+      "answer": "Tatkal booking opens at 10:00 AM for AC classes (1AC, 2AC, 3AC, CC) and at 11:00 AM for non-AC classes (SL, 2S) one day prior to journey date from originating station (RUL-TAT-01).",
+      "category": "Tatkal",
+      "language": "en",
+      "is_outdated": 0,
+      "superseded_by": null
+    },
+    {
+      "faq_id": "FAQ-008",
+      "question": "Is there any refund on confirmed Tatkal tickets?",
+      "answer": "No refund is granted on cancellation of confirmed Tatkal tickets except in specific disruption circumstances like train cancellation or >3 hours delay (RUL-TAT-01).",
+      "category": "Tatkal",
+      "language": "en",
+      "is_outdated": 0,
+      "superseded_by": null
+    },
+    {
+      "faq_id": "FAQ-009",
+      "question": "What is the minimum Tatkal charge for Sleeper class?",
+      "answer": "The minimum Tatkal charge for Sleeper class is Rs 100.",
+      "category": "Tatkal",
+      "language": "en",
+      "is_outdated": 1,
+      "superseded_by": "CIR-2026-02"
+    },
+    {
+      "faq_id": "FAQ-010",
+      "question": "Are senior citizens eligible for fare discount?",
+      "answer": "Currently, general senior citizen concessions remain suspended under RUL-CON-01. Only verified medical patients and Divyangjan concessions are available.",
+      "category": "Concessions",
+      "language": "en",
+      "is_outdated": 0,
+      "superseded_by": null
+    },
+    {
+      "faq_id": "FAQ-011",
+      "question": "How many passengers can be booked on one ticket?",
+      "answer": "Under RUL-BKG-01, a maximum of 6 passengers can be booked on a general ticket, and 4 passengers on a Tatkal ticket.",
+      "category": "Booking",
+      "language": "en",
+      "is_outdated": 0,
+      "superseded_by": null
+    },
+    {
+      "faq_id": "FAQ-012",
+      "question": "Can RAC passengers travel on the train?",
+      "answer": "Yes, RAC (Reservation Against Cancellation) passengers are allotted a sitting berth (shared lower berth) and are permitted to board the train (RUL-WL-01).",
+      "category": "Waitlist",
+      "language": "en",
+      "is_outdated": 0,
+      "superseded_by": null
+    },
+    {
+      "faq_id": "FAQ-013",
+      "question": "Kya main apne kutte (dog) ko train me le ja sakta hoon?",
+      "answer": "Kutte ko sirf 1AC coach me poora coupe ya cabin book karke le जाया ja sakta hai. 2AC, 3AC ya Sleeper me pets le jana niyam RUL-LUG-01 ke tahat sakht mana hai.",
+      "category": "Luggage",
+      "language": "hi-en",
+      "is_outdated": 0,
+      "superseded_by": null
+    },
+    {
+      "faq_id": "FAQ-014",
+      "question": "Kal ki train cancel karni hai, kitna paisa wapas milega?",
+      "answer": "Refund train departure ke samay par depend karta hai. Agar departure me 48 se 12 ghante bache hain to 25% charge lagega. 12 se 4 ghante par 50% charge katega (RUL-CAN-01).",
+      "category": "Cancellation",
+      "language": "hi-en",
+      "is_outdated": 0,
+      "superseded_by": null
+    },
+    {
+      "faq_id": "FAQ-015",
+      "question": "Waitlist ticket confirm na hone par kya hota hai?",
+      "answer": "Charting ke baad agar e-ticket par sabhi yatri waitlist me rehte hain, to ticket apne aap cancel ho jata hai aur poora paisa bank account me refund ho jata hai (RUL-WL-01).",
+      "category": "Waitlist",
+      "language": "hi-en",
+      "is_outdated": 0,
+      "superseded_by": null
+    },
+    {
+      "faq_id": "FAQ-016",
+      "question": "Kya train me digital Aadhaar ya DigiLocker chalega?",
+      "answer": "Haan, RUL-ID-01 aur CIR-2026-06 ke anusar DigiLocker ya m-Aadhaar par dikhaya gaya ID proof poori tarah manya hai.",
+      "category": "Identity",
+      "language": "hi-en",
+      "is_outdated": 0,
+      "superseded_by": null
+    },
+    {
+      "faq_id": "FAQ-017",
+      "question": "Boarding station badalne ki deadline kya hai?",
+      "answer": "Aap train chhootne ke 4 ghante pehle tak online boarding station badal sakte hain. Yah suvidha keval ek baar milti hai (RUL-BRD-01).",
+      "category": "Boarding",
+      "language": "hi-en",
+      "is_outdated": 0,
+      "superseded_by": null
+    },
+    {
+      "faq_id": "FAQ-018",
+      "question": "Agar train 3 ghante se zyada late ho to kya karein?",
+      "answer": "Agar train 3 ghante se zyada deri se chal rahi hai, to aap departure se pehle TDR file karke bina kisi katauti ke 100% refund prapt kar sakte hain (RUL-DIS-01).",
+      "category": "Refunds",
+      "language": "hi-en",
+      "is_outdated": 0,
+      "superseded_by": null
+    },
+    {
+      "faq_id": "FAQ-019",
+      "question": "Kya student ID se travel kiya ja sakta hai?",
+      "answer": "Haan, recognized school ya college dwara jari kiya gaya original photo student identity card travel ID ke roop me maanya hai (RUL-ID-01).",
+      "category": "Identity",
+      "language": "hi-en",
+      "is_outdated": 0,
+      "superseded_by": null
+    },
+    {
+      "faq_id": "FAQ-020",
+      "question": "Train 3 ghante se zyada late ho to kya refund milega?",
+      "answer": "Haan, RUL-DIS-01 Section 2 ke tahat agar train 3 ghante se adhik late hai aur aap yatra nahi karte hain, to departure se pehle TDR file karke poora refund le sakte hain.",
+      "category": "Refunds",
+      "language": "hi-en",
+      "is_outdated": 0,
+      "superseded_by": null
+    }
+  ]
+}
