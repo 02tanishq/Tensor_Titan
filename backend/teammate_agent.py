@@ -261,16 +261,29 @@ def process_with_rag_agent(
     ])
     is_booking_inquiry = (has_booking_term and has_self_ref and not has_action_or_rules)
     if is_booking_inquiry:
+        # Check if query filters by a specific train number
+        train_filter_match = re.search(r'\b\d{5}\b', msg_clean)
+        target_train_no = train_filter_match.group(0) if train_filter_match else None
+
         conn = get_db_connection()
         c = conn.cursor()
-        c.execute("""
+        
+        query = """
             SELECT b.booking_id, b.train_no, t.name as train_name, b.from_code, b.to_code, 
                    b.journey_date, b.class, b.status, b.amount_paid
             FROM bookings b
             LEFT JOIN trains t ON b.train_no = t.train_no
             WHERE b.passenger_id = ?
-            ORDER BY b.journey_date DESC
-        """, (passenger_id,))
+        """
+        params = [passenger_id]
+
+        if target_train_no:
+            query += " AND b.train_no = ?"
+            params.append(target_train_no)
+
+        query += " ORDER BY b.journey_date DESC"
+
+        c.execute(query, tuple(params))
         rows = c.fetchall()
         conn.close()
 
@@ -282,10 +295,14 @@ def process_with_rag_agent(
                     f"• {r['booking_id']}: Train {r['train_no']}{t_name} from {r['from_code']} to {r['to_code']} on {r['journey_date']} "
                     f"| Class: {r['class']} | Status: {r['status']} | Fare: Rs {r['amount_paid']}"
                 )
-            ans_text = f"Here are the bookings registered under your account ({passenger_id}):\n" + "\n".join(booking_lines)
+            header_str = f"for Train {target_train_no}" if target_train_no else "registered under your account"
+            ans_text = f"Here are the bookings {header_str} ({passenger_id}):\n" + "\n".join(booking_lines)
             tool_data = [{"booking_id": r["booking_id"], "train_no": r["train_no"], "status": r["status"]} for r in rows]
         else:
-            ans_text = f"You do not have any registered bookings under Passenger ID {passenger_id}."
+            if target_train_no:
+                ans_text = f"You do not have any registered bookings for Train {target_train_no} under Passenger ID {passenger_id}."
+            else:
+                ans_text = f"You do not have any registered bookings under Passenger ID {passenger_id}."
             tool_data = []
 
         return {
@@ -293,7 +310,7 @@ def process_with_rag_agent(
             "answer_type": "answer",
             "answer": ans_text,
             "sources": [{"doc_id": "RUL-BKG-01", "section": "2. Passenger Bookings"}],
-            "tools": [{"tool": "get_passenger_bookings", "output": {"count": len(rows), "bookings": tool_data}}],
+            "tools": [{"tool": "get_passenger_bookings", "output": {"count": len(rows), "train_no_filter": target_train_no, "bookings": tool_data}}],
             "pending_action": None,
             "handed_to_human": None
         }
