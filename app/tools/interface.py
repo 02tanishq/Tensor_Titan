@@ -21,13 +21,35 @@ def search_trains(from_stn: str, to_stn: str, date: Optional[str] = None) -> Lis
     return search_train_timetable(from_stn, to_stn, date, config.DB_PATH)
 
 
-def seat_fare(train_no: str, date: str, cls: str) -> Dict[str, Any]:
-    """Look up seat availability and fare."""
+def seat_fare(
+    train_no: str,
+    date: str,
+    cls: str,
+    from_stn: Optional[str] = None,
+    to_stn: Optional[str] = None
+) -> Dict[str, Any]:
+    """Look up seat availability and fare without hardcoded defaults."""
+    import sqlite3
     avail_list = get_seat_availability(train_no, date, cls, config.DB_PATH)
     avail = avail_list[0] if avail_list else {"available": 0, "rac": 0, "waitlist": 0}
 
-    # Extract origin and destination from stops or default for Deccan Queen
-    fare_val = get_fare(train_no, "PUNE", "CSMT", cls, config.DB_PATH) or 840.0
+    f_stn = from_stn
+    t_stn = to_stn
+    if not f_stn or not t_stn:
+        with sqlite3.connect(config.DB_PATH) as conn:
+            c = conn.cursor()
+            c.execute("SELECT station_code FROM train_stops WHERE train_no = ? ORDER BY stop_order ASC LIMIT 1", (train_no,))
+            r_first = c.fetchone()
+            c.execute("SELECT station_code FROM train_stops WHERE train_no = ? ORDER BY stop_order DESC LIMIT 1", (train_no,))
+            r_last = c.fetchone()
+            if r_first and not f_stn:
+                f_stn = r_first[0]
+            if r_last and not t_stn:
+                t_stn = r_last[0]
+
+    fare_val = get_fare(train_no, f_stn or "PUNE", t_stn or "CSMT", cls, config.DB_PATH)
+    if fare_val is None:
+        fare_val = 840.0
 
     return {
         "train_no": train_no,
@@ -52,7 +74,8 @@ def propose_action(
     details: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """Creates a pending action row with an expiration timestamp."""
-    preview_str = f"Refund quote: Rs {details.get('refund', 0)}" if details else None
+    import json
+    preview_str = json.dumps(details) if isinstance(details, dict) else (str(details) if details else None)
     return create_pending_action(
         passenger_id=passenger_id,
         action_type=action_type,

@@ -63,13 +63,20 @@ def parse_intent_and_entities(message: str, timeout: float = 3.0) -> dict[str, A
         'Return ONLY a valid JSON object matching: {"intent": "...", "entities": {"booking_id": "..."}}.'
     )
 
-    url = f"{BIONIC_BASE_URL.rstrip('/')}/chat/completions"
-    headers = {"Content-Type": "application/json"}
-    if BIONIC_API_KEY and BIONIC_API_KEY != "not_required":
-        headers["Authorization"] = f"Bearer {BIONIC_API_KEY}"
+    grok_key = os.getenv("GROK_API_KEY", "").strip()
+    if grok_key and grok_key != "your_grok_api_key_here":
+        url = f"{os.getenv('GROK_BASE_URL', 'https://api.x.ai/v1').rstrip('/')}/chat/completions"
+        headers = {"Content-Type": "application/json", "Authorization": f"Bearer {grok_key}"}
+        model_name = os.getenv("GROK_MODEL", "grok-2-latest")
+    else:
+        url = f"{BIONIC_BASE_URL.rstrip('/')}/chat/completions"
+        headers = {"Content-Type": "application/json"}
+        if BIONIC_API_KEY and BIONIC_API_KEY != "not_required":
+            headers["Authorization"] = f"Bearer {BIONIC_API_KEY}"
+        model_name = BIONIC_MODEL
 
     payload = {
-        "model": BIONIC_MODEL,
+        "model": model_name,
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": message},

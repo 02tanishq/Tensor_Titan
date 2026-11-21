@@ -346,7 +346,10 @@ def confirm_action_execution(action_id: str, requesting_passenger_id: str) -> Di
         conn.close()
         return {"success": False, "error": "Unauthorized: Only the passenger who requested this action can confirm it."}
 
-    # Idempotency: Calling it twice must not book or cancel twice
+    try:
+        stored_res = json.loads(act["result"]) if act["result"] else {}
+    except Exception:
+        stored_res = {"preview": act["result"]}
     if act["status"] in ("confirmed", "CONFIRMED"):
         conn.close()
         return {
@@ -354,7 +357,7 @@ def confirm_action_execution(action_id: str, requesting_passenger_id: str) -> Di
             "action_id": action_id,
             "status": "action_done",
             "message": "Action was already confirmed and processed.",
-            "result": json.loads(act["result"]) if act["result"] else {}
+            "result": stored_res
         }
 
     # Check expiration from settings
@@ -367,7 +370,10 @@ def confirm_action_execution(action_id: str, requesting_passenger_id: str) -> Di
 
     action_type = act["action_type"]
     booking_id = act["booking_id"]
-    details = json.loads(act["result"]) if act["result"] else {}
+    try:
+        details = json.loads(act["result"]) if act["result"] else {}
+    except Exception:
+        details = {"preview": act["result"]}
 
     try:
         # Atomic Transaction

@@ -16,6 +16,8 @@ if CURRENT_DIR not in sys.path:
     sys.path.insert(0, CURRENT_DIR)
 
 from frontend.api_client import UjjwalRailClient
+from app.config import load_env_file
+load_env_file()
 
 # ----------------------------------------------------------------------
 # Page Configuration & Design System
@@ -119,6 +121,16 @@ with st.sidebar:
     st.session_state.active_passenger_id = active_passenger_id
 
     st.info(f"Outgoing Header:\n`X-Passenger-Id: {active_passenger_id}`")
+
+    st.markdown("---")
+    st.subheader("🤖 Grok LLM Brain")
+    grok_key = os.getenv("GROK_API_KEY", "").strip()
+    grok_model = os.getenv("GROK_MODEL", "grok-2-latest")
+    is_mock = os.getenv("MOCK_LLM", "false").lower() == "true"
+    if grok_key and grok_key != "your_grok_api_key_here" and not is_mock:
+        st.success(f"🟢 Grok API Active (`{grok_model}`)")
+    else:
+        st.info("🟡 Deterministic Mode Active\n\n(Set `GROK_API_KEY` in `.env` to enable live Grok)")
 
     st.markdown("---")
     st.subheader("⏱️ Temporal Simulation (`as_of`)")

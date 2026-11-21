@@ -17,6 +17,9 @@ PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, ".."))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
+from app.config import load_env_file
+load_env_file()
+
 from backend.domain_tools import (
     get_db,
     get_booking_secure,
