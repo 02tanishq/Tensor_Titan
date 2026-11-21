@@ -211,16 +211,55 @@ def process_with_rag_agent(
     # ----------------------------------------------------------------------
     # 3.7 Passenger Bookings Inquiry (What tickets/bookings do I have?)
     # ----------------------------------------------------------------------
-    booking_inquiry_triggers = [
-        "kon kon ticket", "kon si ticket", "meri ticket", "meri booking", 
-        "my booking", "my ticket", "show my ticket", "tell me about the booking", 
-        "what booking", "check my booking", "list my booking", "booking that i have done",
-        "ticket book kiye"
-    ]
-    is_booking_inquiry = (
-        any(phrase in msg_lower for phrase in booking_inquiry_triggers)
-        and not any(w in msg_lower for w in ["cancel", "radd", "refund", "charge"])
-    )
+    b_match = re.search(r'UR-\d{5}', msg_clean)
+    if b_match and any(w in msg_lower for w in ["status", "check", "detail", "batao", "show", "info"]) and not any(w in msg_lower for w in ["cancel", "refund", "charge"]):
+        target_b_id = b_match.group(0)
+        conn = get_db_connection()
+        c = conn.cursor()
+        c.execute("""
+            SELECT b.booking_id, b.passenger_id, b.train_no, t.name as train_name, b.from_code, b.to_code, 
+                   b.journey_date, b.class, b.status, b.amount_paid
+            FROM bookings b
+            LEFT JOIN trains t ON b.train_no = t.train_no
+            WHERE b.booking_id = ?
+        """, (target_b_id,))
+        row = c.fetchone()
+        conn.close()
+        if row:
+            if row["passenger_id"] != passenger_id:
+                return {
+                    "trace_id": trace_id,
+                    "answer_type": "refusal",
+                    "answer": "Accessing or modifying bookings belonging to another passenger is strictly prohibited under Ujjwal Rail privacy policy R8.",
+                    "sources": [{"doc_id": "RUL-BKG-01", "section": "9. Passenger Privacy & Security"}],
+                    "tools": [],
+                    "pending_action": None,
+                    "handed_to_human": None
+                }
+            t_name = f" ({row['train_name']})" if row["train_name"] else ""
+            ans_text = (
+                f"Booking details for {target_b_id}: Train {row['train_no']}{t_name} from {row['from_code']} to {row['to_code']} "
+                f"on {row['journey_date']} | Class: {row['class']} | Status: {row['status']} | Amount Paid: Rs {row['amount_paid']}."
+            )
+            return {
+                "trace_id": trace_id,
+                "answer_type": "answer",
+                "answer": ans_text,
+                "sources": [{"doc_id": "RUL-BKG-01", "section": "2. Passenger Bookings"}],
+                "tools": [{"tool": "get_booking_details", "output": {"booking_id": target_b_id, "status": row["status"]}}],
+                "pending_action": None,
+                "handed_to_human": None
+            }
+
+    has_booking_term = any(w in msg_lower for w in ["booking", "bookings", "ticket", "tickets", "gadi", "gaadi"])
+    has_self_ref = any(w in msg_lower for w in [
+        "my", "mine", "i have", "i made", "i booked", "done by me", "for me", "with me",
+        "meri", "mere", "mera", "maine", "apni", "hamari", "humari", "kon kon", "kon si", "which"
+    ])
+    has_action_or_rules = any(w in msg_lower for w in [
+        "cancel", "radd", "refund", "charge", "fare", "price", "kitna paisa", "rule", "rules", "policy", "fee", "dog", "pet"
+    ])
+    is_booking_inquiry = (has_booking_term and has_self_ref and not has_action_or_rules)
     if is_booking_inquiry:
         conn = get_db_connection()
         c = conn.cursor()
