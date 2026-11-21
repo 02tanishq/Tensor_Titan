@@ -9,3 +9,5 @@ venv/
 *.db-shm
 *.db-walapp/ 
 src/ 
+app/ 
+src/ 
