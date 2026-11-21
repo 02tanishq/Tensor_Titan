@@ -18,6 +18,7 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from backend.domain_tools import (
+    get_db,
     get_booking_secure,
     confirm_action_execution,
     cancel_action_execution,
@@ -40,6 +41,37 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ----------------------------------------------------------------------
+# Header-Only Identity Enforcement (R8 & Checklist E)
+# ----------------------------------------------------------------------
+
+def authenticate_passenger(x_passenger_id: Optional[str] = Header(None, alias="X-Passenger-Id")) -> str:
+    """
+    R8 & Checklist E Guarantee:
+    1. Identity extracted exclusively from X-Passenger-Id header (never message body).
+    2. Missing header -> 400 Bad Request.
+    3. Unknown/unregistered passenger -> 401 Unauthorized.
+    """
+    if not x_passenger_id or not x_passenger_id.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="Missing required 'X-Passenger-Id' authentication header."
+        )
+    
+    clean_id = x_passenger_id.strip()
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("SELECT passenger_id FROM passengers WHERE passenger_id = ?", (clean_id,))
+    row = c.fetchone()
+    conn.close()
+
+    if not row:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, 
+            detail=f"Unauthorized: Unknown passenger identity '{clean_id}'. Access denied."
+        )
+    return clean_id
 
 # ----------------------------------------------------------------------
 # Request Models
@@ -70,18 +102,16 @@ def health_check():
 @app.post("/chat", tags=["Assistant"])
 def chat_endpoint(
     req: ChatRequest,
-    x_passenger_id: Optional[str] = Header(default="PASS-001", alias="X-Passenger-Id")
+    x_passenger_id: Optional[str] = Header(None, alias="X-Passenger-Id")
 ):
     """
     Endpoint: POST /chat - Send a passenger's message.
-    Header X-Passenger-Id says who is asking.
-    Body has session_id, message and an optional as_of time.
+    Header X-Passenger-Id strictly enforces who is asking.
     """
-    if not x_passenger_id:
-        raise HTTPException(status_code=400, detail="Missing required X-Passenger-Id header.")
+    passenger_id = authenticate_passenger(x_passenger_id)
 
     response = handle_chat_query(
-        passenger_id=x_passenger_id,
+        passenger_id=passenger_id,
         session_id=req.session_id,
         message=req.message,
         as_of=req.as_of
@@ -91,16 +121,15 @@ def chat_endpoint(
 @app.post("/actions/{action_id}/confirm", tags=["Actions"])
 def confirm_action_endpoint(
     action_id: str,
-    x_passenger_id: Optional[str] = Header(default="PASS-001", alias="X-Passenger-Id")
+    x_passenger_id: Optional[str] = Header(None, alias="X-Passenger-Id")
 ):
     """
     Endpoint: POST /actions/{id}/confirm - Confirm a proposed change.
     Only the passenger who asked may confirm. Idempotent: calling twice will not book or cancel twice.
     """
-    if not x_passenger_id:
-        raise HTTPException(status_code=400, detail="Missing X-Passenger-Id header.")
+    passenger_id = authenticate_passenger(x_passenger_id)
 
-    res = confirm_action_execution(action_id=action_id, requesting_passenger_id=x_passenger_id)
+    res = confirm_action_execution(action_id=action_id, requesting_passenger_id=passenger_id)
     if not res.get("success", False):
         raise HTTPException(status_code=400, detail=res.get("error", "Failed to confirm action."))
     return res
@@ -108,16 +137,15 @@ def confirm_action_endpoint(
 @app.post("/actions/{action_id}/cancel", tags=["Actions"])
 def cancel_action_endpoint(
     action_id: str,
-    x_passenger_id: Optional[str] = Header(default="PASS-001", alias="X-Passenger-Id")
+    x_passenger_id: Optional[str] = Header(None, alias="X-Passenger-Id")
 ):
     """
     Endpoint: POST /actions/{id}/cancel - Drop a proposed change.
     Nothing happens to the database bookings.
     """
-    if not x_passenger_id:
-        raise HTTPException(status_code=400, detail="Missing X-Passenger-Id header.")
+    passenger_id = authenticate_passenger(x_passenger_id)
 
-    res = cancel_action_execution(action_id=action_id, requesting_passenger_id=x_passenger_id)
+    res = cancel_action_execution(action_id=action_id, requesting_passenger_id=passenger_id)
     if not res.get("success", False):
         raise HTTPException(status_code=400, detail=res.get("error", "Failed to drop action."))
     return res
@@ -125,18 +153,16 @@ def cancel_action_endpoint(
 @app.get("/bookings/{booking_id}", tags=["Bookings"])
 def get_booking_endpoint(
     booking_id: str,
-    x_passenger_id: Optional[str] = Header(default="PASS-001", alias="X-Passenger-Id")
+    x_passenger_id: Optional[str] = Header(None, alias="X-Passenger-Id")
 ):
     """
     Endpoint: GET /bookings/{id} - Fetch one booking.
-    Judges use it to check what you claim. Same privacy rule as the chat (R8).
+    Strict privacy: Returns 404 whether booking does not exist or belongs to another passenger (R8).
     """
-    if not x_passenger_id:
-        raise HTTPException(status_code=400, detail="Missing X-Passenger-Id header.")
+    passenger_id = authenticate_passenger(x_passenger_id)
 
-    res = get_booking_secure(booking_id=booking_id, requesting_passenger_id=x_passenger_id)
+    res = get_booking_secure(booking_id=booking_id, requesting_passenger_id=passenger_id)
     if not res.get("authorized", False):
-        # Polite refusal without leaking existence
         raise HTTPException(status_code=404, detail="Booking not found or not accessible under your account.")
     return res["booking"]
 

@@ -33,6 +33,17 @@ def test_all():
     assert r_health.status_code == 200, f"Health check failed: {r_health.text}"
     print("[PASS] 1. GET /health -> 200 OK")
 
+    # 1b. Header Validation Checks (Checklist E)
+    # Missing header -> 400
+    r_no_header = client.post("/chat", json={"session_id": "test_err", "message": "hello"})
+    assert r_no_header.status_code == 400, f"Expected 400 for missing header, got {r_no_header.status_code}"
+    print("[PASS] 1b. Missing X-Passenger-Id header rejected with 400 Bad Request")
+
+    # Unknown passenger -> 401
+    r_bad_passenger = client.post("/chat", headers={"X-Passenger-Id": "PASS-FAKE-999"}, json={"session_id": "test_err", "message": "hello"})
+    assert r_bad_passenger.status_code == 401, f"Expected 401 for unknown passenger, got {r_bad_passenger.status_code}"
+    print("[PASS] 1c. Unknown passenger identity rejected with 401 Unauthorized")
+
     # 2. POST /chat (Find trains)
     r_chat1 = client.post("/chat", headers={"X-Passenger-Id": "PASS-001"}, json={
         "session_id": "test_s1",

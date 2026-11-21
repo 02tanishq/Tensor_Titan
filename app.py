@@ -62,27 +62,6 @@ CUSTOM_CSS = """
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
 # ----------------------------------------------------------------------
-# Helper: Fetch Sample Passengers & Bookings for Quick Testing
-# ----------------------------------------------------------------------
-@st.cache_data
-def get_passengers_list():
-    db_path = os.path.join(CURRENT_DIR, "data", "ujjwal_rail.db")
-    if os.path.exists(db_path):
-        try:
-            conn = sqlite3.connect(db_path)
-            conn.row_factory = sqlite3.Row
-            c = conn.cursor()
-            c.execute("SELECT passenger_id, name, preferred_language FROM passengers ORDER BY passenger_id ASC")
-            rows = [dict(r) for r in c.fetchall()]
-            conn.close()
-            return rows
-        except Exception:
-            pass
-    return [{"passenger_id": "PASS-001", "name": "Aarav Sharma", "preferred_language": "en"}]
-
-passengers_data = get_passengers_list()
-passenger_options = {f"{p['passenger_id']} - {p['name']} ({p['preferred_language']})": p['passenger_id'] for p in passengers_data}
-
 # ----------------------------------------------------------------------
 # Internal Routing State Management (Single-Page App)
 # ----------------------------------------------------------------------
@@ -97,6 +76,9 @@ if "selected_booking_id" not in st.session_state:
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
+
+if "active_passenger_id" not in st.session_state:
+    st.session_state.active_passenger_id = "PASS-001"
 
 def navigate_to(route_name: str, **kwargs):
     st.session_state.route = route_name
@@ -126,14 +108,17 @@ with st.sidebar:
         st.caption("💡 Run `uvicorn backend.server:app --reload` to start the backend.")
 
     st.markdown("---")
-    st.subheader("👤 Caller Identity (X-Passenger-Id)")
-    sel_pax_label = st.selectbox(
-        "Active Passenger",
-        options=list(passenger_options.keys()),
-        index=0
-    )
-    active_passenger_id = passenger_options[sel_pax_label]
-    st.info(f"Requests will include header:\n`X-Passenger-Id: {active_passenger_id}`")
+    st.subheader("🔒 Client Header Identity (R8)")
+    st.caption("Strictly passed via HTTP Header `X-Passenger-Id`. Other passengers' profiles and names are hidden.")
+
+    active_passenger_id = st.text_input(
+        "HTTP Header: X-Passenger-Id",
+        value=st.session_state.active_passenger_id,
+        help="Simulate the authenticated passenger header. The backend strictly isolates data by this ID."
+    ).strip()
+    st.session_state.active_passenger_id = active_passenger_id
+
+    st.info(f"Outgoing Header:\n`X-Passenger-Id: {active_passenger_id}`")
 
     st.markdown("---")
     st.subheader("⏱️ Temporal Simulation (`as_of`)")

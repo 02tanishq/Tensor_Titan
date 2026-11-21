@@ -8,3 +8,4 @@ venv/
 *_backup.db
 *.db-shm
 *.db-wal
+TEAMMATE_HANDOFF.md
