@@ -208,7 +208,7 @@ if st.session_state.route == "chat":
                             if out.get("clashes"):
                                 st.warning(f"⚖️ **Precedence Resolved:** Superseded earlier rule with active circular `{out.get('clashes')}`")
                             if out.get("snippet"):
-                                st.caption(f"Retrieved Context: "{out.get('snippet')}..."")
+                                st.caption(f"Retrieved Context: \"{out.get('snippet')}...\"")
 
                 if other_tools:
                     with st.expander("⚡ Domain Tools Executed", expanded=False):
