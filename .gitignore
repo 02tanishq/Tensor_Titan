@@ -7,4 +7,5 @@ venv/
 .DS_Store
 *_backup.db
 *.db-shm
-*.db-wal
+*.db-walapp/ 
+src/ 
