@@ -543,20 +543,45 @@ def process_with_rag_agent(
             "handed_to_human": None
         }
 
-    # Station search
-    route_match = re.search(r'(?:from|se)\s+([a-zA-Z\s]+?)\s+(?:to|ko|me)\s+([a-zA-Z\s]+?)(?:\s+(?:on|this|tomorrow|$))', msg_clean, re.I)
-    if not route_match:
-        route_match = re.search(r'([a-zA-Z]+)\s+(?:se|from)\s+([a-zA-Z]+)', msg_clean, re.I)
+    # Station search (e.g. "PUNE to CSMT", "from Pune to CSMT", "Pune se Mumbai")
+    route_match = re.search(r'(?:from\s+|se\s+|trains?\s+)?([a-zA-Z\s]+?)\s+(?:to|ko|me|->|-|and)\s+([a-zA-Z\s]+?)(?:\s+(?:on|this|tomorrow|$)|$)', msg_clean, re.I)
+    from_stn = None
+    to_stn = None
+
+    if route_match:
+        cand_from = route_match.group(1).strip()
+        cand_to = route_match.group(2).strip()
+        res_from = resolve_station(cand_from)
+        res_to = resolve_station(cand_to)
+        if res_from and res_to:
+            from_stn = res_from["station_code"]
+            to_stn = res_to["station_code"]
+
+    # Fallback: scan for any two station codes/cities mentioned in the query
+    if not from_stn or not to_stn:
+        conn = get_db_connection()
+        c = conn.cursor()
+        c.execute("SELECT station_code, name, city FROM stations")
+        all_stns = [dict(s) for s in c.fetchall()]
+        conn.close()
+        found_stns = []
+        for s in all_stns:
+            s_code = s["station_code"].lower()
+            s_city = s["city"].lower()
+            if re.search(rf'\b{s_code}\b', msg_lower) or re.search(rf'\b{s_city}\b', msg_lower):
+                if s["station_code"] not in found_stns:
+                    found_stns.append(s["station_code"])
+        if len(found_stns) >= 2:
+            from_stn = found_stns[0]
+            to_stn = found_stns[1]
 
     has_train_intent = any(w in msg_lower for w in ["train", "trains", "gadi", "gaadi", "timetable", "schedule"])
 
-    if route_match:
-        from_stn = route_match.group(1).strip()
-        to_stn = route_match.group(2).strip()
+    if from_stn and to_stn:
         trains = search_trains(from_stn, to_stn, j_date)
         if trains:
-            t_list = ", ".join([f"{t['train_no']} ({t['name']}, departs {t['departure_time']})" for t in trains[:3]])
-            ans_text = f"Found {len(trains)} trains from {from_stn} to {to_stn} on {j_date}: {t_list}."
+            t_list = "\n".join([f"• Train {t['train_no']} ({t['name']}): Departs {t['departure_time']}, Arrives {t['arrival_time']} | Classes: {t['classes']}" for t in trains[:4]])
+            ans_text = f"Found {len(trains)} Ujjwal Rail trains from {from_stn} to {to_stn} on {j_date}:\n{t_list}"
         else:
             ans_text = f"No direct trains found from {from_stn} to {to_stn} on {j_date}."
         return {
@@ -564,7 +589,7 @@ def process_with_rag_agent(
             "answer_type": "answer",
             "answer": ans_text,
             "sources": [{"doc_id": "RUL-BKG-01", "section": "Timetable & Routes"}],
-            "tools": [{"tool": "search_trains", "output": {"count": len(trains), "trains": [t["train_no"] for t in trains]}}],
+            "tools": [{"tool": "search_trains", "output": {"count": len(trains), "from": from_stn, "to": to_stn, "trains": [t["train_no"] for t in trains]}}],
             "pending_action": None,
             "handed_to_human": None
         }
