@@ -5,6 +5,11 @@ Unit & Integration Test Suite for all 7 Hackathon Endpoints
 import sys
 import os
 
+# Set UTF-8 and MOCK_LLM
+if sys.stdout.encoding != 'utf-8':
+    sys.stdout.reconfigure(encoding='utf-8')
+os.environ["MOCK_LLM"] = "true"
+
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 if CURRENT_DIR not in sys.path:
     sys.path.insert(0, CURRENT_DIR)
@@ -32,6 +37,17 @@ def test_all():
     r_health = client.get("/health")
     assert r_health.status_code == 200, f"Health check failed: {r_health.text}"
     print("[PASS] 1. GET /health -> 200 OK")
+
+    # 1b. Header Validation Checks (Checklist E)
+    # Missing header -> 400
+    r_no_header = client.post("/chat", json={"session_id": "test_err", "message": "hello"})
+    assert r_no_header.status_code == 400, f"Expected 400 for missing header, got {r_no_header.status_code}"
+    print("[PASS] 1b. Missing X-Passenger-Id header rejected with 400 Bad Request")
+
+    # Unknown passenger -> 401
+    r_bad_passenger = client.post("/chat", headers={"X-Passenger-Id": "PASS-FAKE-999"}, json={"session_id": "test_err", "message": "hello"})
+    assert r_bad_passenger.status_code == 401, f"Expected 401 for unknown passenger, got {r_bad_passenger.status_code}"
+    print("[PASS] 1c. Unknown passenger identity rejected with 401 Unauthorized")
 
     # 2. POST /chat (Find trains)
     r_chat1 = client.post("/chat", headers={"X-Passenger-Id": "PASS-001"}, json={
@@ -71,8 +87,9 @@ def test_all():
     r_conf = client.post(f"/actions/{action_id}/confirm", headers={"X-Passenger-Id": "PASS-001"})
     assert r_conf.status_code == 200
     res_conf = r_conf.json()
-    assert res_conf["status"] == "action_done"
-    print(f"[PASS] 5. POST /actions/{{id}}/confirm -> {res_conf['message']}")
+    assert res_conf.get("answer_type") == "action_done" or res_conf.get("status") == "action_done"
+    conf_msg = res_conf.get("answer") or res_conf.get("message")
+    print(f"[PASS] 5. POST /actions/{{id}}/confirm -> {conf_msg}")
 
     # Idempotency check: Calling it twice must not error or double-cancel
     r_conf2 = client.post(f"/actions/{action_id}/confirm", headers={"X-Passenger-Id": "PASS-001"})

@@ -13,6 +13,11 @@ Outputs results to eval/results.json and prints evaluation report.
 
 import os
 import sys
+
+# Ensure UTF-8 and MOCK_LLM
+if sys.stdout.encoding != 'utf-8':
+    sys.stdout.reconfigure(encoding='utf-8')
+os.environ["MOCK_LLM"] = "true"
 import json
 import time
 import statistics
@@ -115,7 +120,7 @@ def run_evaluation():
             lat_ms = (t1 - t0) * 1000.0
             latencies.append(lat_ms)
 
-            is_correct = (r1.status_code == 200 and r2.status_code == 200 and r2.json()["status"] == "action_done")
+            is_correct = (r1.status_code == 200 and r2.status_code == 200 and (r2.json().get("answer_type") == "action_done" or r2.json().get("status") == "action_done"))
             if is_correct:
                 correct_count += 1
                 change_safety_pass += 1

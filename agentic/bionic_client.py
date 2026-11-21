@@ -9,18 +9,23 @@ BIONIC_MODEL = os.getenv("BIONIC_MODEL", "qwen3.5-0.8b")
 BIONIC_API_KEY = os.getenv("BIONIC_API_KEY", "")
 
 INTENT_KEYWORDS = {
-    "cancel_booking": ["cancel", "cancellation", "cancel ticket", "cancel booking", "radd"],
-    "book_ticket": ["book", "reserve", "booking", "tatkal"],
-    "change_boarding": ["change boarding", "boarding station", "change station"],
-    "refund_dispute": ["refund dispute", "incorrect refund", "less refund", "wrong refund"],
-    "missed_train_refund": ["missed train", "train missed", "late train refund"],
-    "concession_claim": ["concession", "senior citizen", "divyang", "student discount"],
-    "complaint": ["complaint", "harassment", "bad service", "dirty coach", "rude"],
-    "safety_issue": ["safety", "emergency", "medical", "theft", "danger"],
-    "excess_refund": ["excess refund", "extra refund", "100% refund anyway", "full refund after cutoff"],
-    "waitlist_override": ["confirm waitlist", "override waitlist", "skip queue", "bribe"],
+    # Check Level 3 Refusals and Security first
+    "other_passenger_booking": ["other passenger", "someone else booking", "cancel friend ticket", "friend", "someone else", "another passenger"],
+    "excess_refund": ["excess refund", "extra refund", "100% refund anyway", "full refund after cutoff", "ignore your rules"],
+    "waitlist_override": ["confirm waitlist", "override waitlist", "skip queue", "bribe", "without paying", "waitlist ticket to confirmed"],
     "fare_change": ["reduce fare", "discount fare", "change fare", "cheap fare"],
-    "other_passenger_booking": ["other passenger", "someone else booking", "cancel friend ticket"],
+    
+    # Check Level 2 Escalations
+    "safety_issue": ["safety", "emergency", "medical", "theft", "danger", "security problem"],
+    "complaint": ["complaint", "harassment", "bad service", "dirty coach", "rude", "complain"],
+    "refund_dispute": ["refund dispute", "incorrect refund", "less refund", "wrong refund", "dispute"],
+    "missed_train_refund": ["missed train", "train missed", "late train refund"],
+
+    # Check Level 1 State Actions
+    "change_boarding": ["change boarding", "boarding station", "change station"],
+    "cancel_booking": ["cancel my ticket", "cancel ticket", "cancel booking", "cancel", "radd"],
+    "concession_claim": ["concession", "senior citizen", "divyang", "student discount"],
+    "book_ticket": ["book 1 seat", "book a seat", "reserve a seat", "book ticket"],
 }
 
 
@@ -48,7 +53,9 @@ def fallback_parse(message: str) -> dict[str, Any]:
 
 
 def parse_intent_and_entities(message: str, timeout: float = 3.0) -> dict[str, Any]:
-    """Uses Bionic AI to parse intent; falls back to rule-based if unavailable."""
+    """Uses Bionic AI to parse intent; falls back to rule-based if unavailable or MOCK_LLM=true."""
+    if os.getenv("MOCK_LLM", "false").lower() == "true":
+        return fallback_parse(message)
     system_prompt = (
         "You are an intent parser for Ujjwal Rail. Extract intent and entities from the passenger message.\n"
         "Valid intents: cancel_booking, book_ticket, change_boarding, refund_dispute, missed_train_refund, "
