@@ -142,6 +142,15 @@ def detect_intent(text: str) -> str:
     ]):
         return "other"
 
+    # 2.5 Complaints, grievances, refund disputes, delays, human escalation
+    if any(w in t for w in [
+        "complain", "complaint", "grievance", "harass", "harassment", "lost bag", "stolen", "human", "agent",
+        "executive", "officer", "manager", "representative", "dispute", "sue",
+        "not received", "haven't received", "havent received", "have not received",
+        "delay", "delayed", "late train", "helpline", "support desk", "refund issue", "refund problem"
+    ]):
+        return "complaint"
+
     # 3. Informational cancellation & refund questions (Rules QA)
     if any(p in t for p in [
         "can i cancel", "deadline", "hours before", "chart", "how much refund",

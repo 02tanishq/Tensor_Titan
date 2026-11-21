@@ -177,17 +177,24 @@ if st.session_state.route == "chat":
 
     # Quick prompt chips
     st.markdown("**Quick test queries:**")
-    quick_cols = st.columns(5)
+    quick_cols = st.columns(4)
     if quick_cols[0].button("🎫 My Ticket (UR-10001)"):
         st.session_state.quick_query = "What is the status of my ticket UR-10001?"
     if quick_cols[1].button("🐕 Pet dog in 2AC?"):
         st.session_state.quick_query = "Can I carry my pet dog in 2AC coach?"
-    if quick_cols[2].button("💰 Refund for UR-30419"):
+    if quick_cols[2].button("💰 Refund Quote (UR-30419)"):
         st.session_state.quick_query = "If I cancel my ticket UR-30419 now, how much refund will I get?"
     if quick_cols[3].button("🚫 Cancel Booking"):
         st.session_state.quick_query = "Cancel my ticket UR-30418"
-    if quick_cols[4].button("🚨 Human Executive"):
-        st.session_state.quick_query = "I want to speak to a human executive regarding my complaint"
+
+    st.markdown("**Grievance & Support Escalations (Rule R7):**")
+    esc_cols = st.columns(3)
+    if esc_cols[0].button("⚠️ Train Delay Complaint"):
+        st.session_state.quick_query = "I want to lodge a complaint about my train delay"
+    if esc_cols[1].button("💸 Refund Not Received (UR-10001)"):
+        st.session_state.quick_query = "I have not received my refund for UR-10001"
+    if esc_cols[2].button("🗣️ Talk to Agent"):
+        st.session_state.quick_query = "I want to talk to an agent regarding my grievance"
 
     # Display chat history
     for msg in st.session_state.messages:

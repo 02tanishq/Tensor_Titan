@@ -239,25 +239,75 @@ def execute_branch_c(
     idx: int
 ) -> PartResult:
     """Branch C: Human Hand-off."""
+    import sqlite3
     ticket_id = f"ESC-{uuid.uuid4().hex[:4].upper()}"
     desk = "Grievance Redressal Desk" if sub_req.intent in ("complaint", "dispute") else "Passenger Support Desk"
 
-    if lang == "hi-en":
-        msg = (
-            f"Aapka request hamare human {desk} ko escalate kar diya gaya hai (Ticket #{ticket_id}).\n"
-            f"• Executive Support Helpline: 139 (Toll-Free: 1800-111-139)\n"
-            f"• Grievance Desk Email: grievance@ujjwalrail.gov.in\n"
-            f"• Operating Hours: 24x7 Executive Cell\n"
-            f"Hamara executive aapse jald hi sampark karega."
-        )
+    t = sub_req.text.lower()
+    b_info = ""
+    if sub_req.slots.booking_id:
+        try:
+            with sqlite3.connect(config.DB_PATH) as conn:
+                conn.row_factory = sqlite3.Row
+                c = conn.cursor()
+                c.execute("SELECT * FROM bookings WHERE booking_id = ?", (sub_req.slots.booking_id,))
+                b_row = c.fetchone()
+                if b_row:
+                    b_info = f" for booking {b_row['booking_id']} (Train {b_row['train_no']}, Amount: Rs {b_row['amount_paid']}, Status: {b_row['status']})"
+        except Exception:
+            pass
+
+    if "refund" in t or "not received" in t or "paisa" in t:
+        if lang in ("hi", "hi-en"):
+            msg = (
+                f"Aapka refund dispute{b_info} hamare Grievance Redressal Desk ko bhej diya gaya hai (Ticket #{ticket_id}).\n"
+                f"• Executive Support Helpline: 139 (Toll-Free: 1800-111-139)\n"
+                f"• Grievance Desk Email: grievance@ujjwalrail.gov.in\n"
+                f"• Operating Hours: 24x7 Executive Cell\n"
+                f"Hamari accounts team payment transaction verify karke aapse sampark karegi."
+            )
+        else:
+            msg = (
+                f"I have escalated your refund dispute{b_info} to our Grievance Redressal & Accounts Desk. Ticket ID #{ticket_id} has been logged with high priority.\n"
+                f"• Executive Support Helpline: 139 (Toll-Free: 1800-111-139)\n"
+                f"• Grievance Desk Email: grievance@ujjwalrail.gov.in\n"
+                f"• Operating Hours: 24x7 Executive Cell\n"
+                f"An official executive will verify the payment gateway transaction and assist you."
+            )
+    elif "delay" in t or "late" in t:
+        if lang in ("hi", "hi-en"):
+            msg = (
+                f"Aapki train delay ki complaint hamare Grievance Redressal Desk ko bhej di gayi hai (Ticket #{ticket_id}).\n"
+                f"• Executive Support Helpline: 139 (Toll-Free: 1800-111-139)\n"
+                f"• Grievance Desk Email: grievance@ujjwalrail.gov.in\n"
+                f"• Operating Hours: 24x7 Executive Cell\n"
+                f"Operations team delay ki jaanch kar aapse jald hi sampark karegi."
+            )
+        else:
+            msg = (
+                f"I have registered your train delay complaint under Ticket ID #{ticket_id} with our Operations & Grievance Redressal Desk.\n"
+                f"• Executive Support Helpline: 139 (Toll-Free: 1800-111-139)\n"
+                f"• Grievance Desk Email: grievance@ujjwalrail.gov.in\n"
+                f"• Operating Hours: 24x7 Executive Cell\n"
+                f"An operations officer has been assigned to investigate the delay incident and follow up with you."
+            )
     else:
-        msg = (
-            f"I have escalated your request regarding '{sub_req.text}' to our {desk}. Ticket ID #{ticket_id} has been logged.\n"
-            f"• Executive Support Helpline: 139 (Toll-Free: 1800-111-139)\n"
-            f"• Grievance Desk Email: grievance@ujjwalrail.gov.in\n"
-            f"• Operating Hours: 24x7 Executive Cell\n"
-            f"An official executive will review your ticket and assist you shortly."
-        )
+        if lang in ("hi", "hi-en"):
+            msg = (
+                f"Aapka request hamare human {desk} ko escalate kar diya gaya hai (Ticket #{ticket_id}).\n"
+                f"• Executive Support Helpline: 139 (Toll-Free: 1800-111-139)\n"
+                f"• Grievance Desk Email: grievance@ujjwalrail.gov.in\n"
+                f"• Operating Hours: 24x7 Executive Cell\n"
+                f"Hamara executive aapse jald hi sampark karega."
+            )
+        else:
+            msg = (
+                f"I have escalated your request regarding '{sub_req.text}' to our {desk}. Ticket ID #{ticket_id} has been logged.\n"
+                f"• Executive Support Helpline: 139 (Toll-Free: 1800-111-139)\n"
+                f"• Grievance Desk Email: grievance@ujjwalrail.gov.in\n"
+                f"• Operating Hours: 24x7 Executive Cell\n"
+                f"An official executive will review your ticket and assist you shortly."
+            )
 
     hand_off = HandedToHuman(
         desk=desk,
