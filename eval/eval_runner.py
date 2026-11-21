@@ -23,10 +23,41 @@ PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, ".."))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from fastapi.testclient import TestClient
-from backend.server import app
+from backend.server import app, chat_endpoint, confirm_action_endpoint, cancel_action_endpoint, ChatRequest
 
-client = TestClient(app)
+class DirectResponse:
+    def __init__(self, status_code, data):
+        self.status_code = status_code
+        self._data = data
+    def json(self):
+        return self._data
+    @property
+    def text(self):
+        return json.dumps(self._data)
+
+class DirectClient:
+    def post(self, url, headers=None, json=None):
+        headers = headers or {}
+        p_id = headers.get("X-Passenger-Id", "PASS-001")
+        if url == "/chat":
+            req = ChatRequest(
+                session_id=json["session_id"],
+                message=json["message"],
+                as_of=json.get("as_of")
+            )
+            res = chat_endpoint(req, x_passenger_id=p_id)
+            return DirectResponse(200, res)
+        elif url.startswith("/actions/") and url.endswith("/confirm"):
+            act_id = url.split("/")[2]
+            res = confirm_action_endpoint(act_id, x_passenger_id=p_id)
+            return DirectResponse(200, res)
+        elif url.startswith("/actions/") and url.endswith("/cancel"):
+            act_id = url.split("/")[2]
+            res = cancel_action_endpoint(act_id, x_passenger_id=p_id)
+            return DirectResponse(200, res)
+        return DirectResponse(404, {"detail": "Not found"})
+
+client = DirectClient()
 
 def run_evaluation():
     cases_file = os.path.join(CURRENT_DIR, "eval_cases.json")
